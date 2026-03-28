@@ -1,0 +1,247 @@
+.viewer {
+  // CSS variables for easy theming
+  --json-font-family: 'Menlo', 'Monaco', 'Courier New', monospace;
+  --json-font-size: 13px;
+  --json-line-height: 1.5;
+  --json-indent: 20px;
+
+  // Colors
+  --json-text-color: rgb(0, 43, 54);
+  --json-bg-color: transparent;
+  --json-string-color: #028000;
+  --json-number-color: #4d50ee;
+  --json-boolean-color: #ff8c00;
+  --json-null-color: #e30000;
+  --json-key-color: #1a1a1a;
+
+  // UI elements
+  --json-border-color: #ddd;
+  --json-hover-bg: #f6f6f6;
+  --json-arrow-color: rgb(42, 161, 152);
+  --json-dots-color: rgb(203, 75, 22);
+  --json-focus-color: #4a90e2;
+
+  // Copy button
+  --json-copy-bg: #e8e8e8;
+  --json-copy-border: #d0d0d0;
+  --json-copy-text: #555;
+  --json-copy-hover-bg: #d8d8d8;
+  --json-copy-hover-border: #b0b0b0;
+  --json-copied-bg: #7ae582;
+  --json-copied-border: #5cc768;
+  --json-copied-text: #1a5a1a;
+
+  font-family: var(--json-font-family);
+  color: var(--json-text-color);
+  background: var(--json-bg-color);
+  font-size: var(--json-font-size);
+  line-height: var(--json-line-height);
+
+  &.dark {
+    --json-text-color: #d4d4d4;
+    --json-bg-color: transparent;
+    --json-string-color: #a5d6a7;
+    --json-number-color: #90caf9;
+    --json-boolean-color: #ffb74d;
+    --json-null-color: #ef5350;
+    --json-key-color: #e0e0e0;
+    --json-border-color: #424242;
+    --json-hover-bg: rgba(255, 255, 255, 0.1);
+    --json-arrow-color: #4dd0e1;
+    --json-dots-color: #ff7043;
+    --json-copy-bg: #424242;
+    --json-copy-border: #616161;
+    --json-copy-text: #e0e0e0;
+    --json-copy-hover-bg: #616161;
+    --json-copy-hover-border: #757575;
+  }
+}
+
+.viewer > .node:first-child {
+  margin-left: 0;
+
+  &::before {
+    display: none;
+  }
+}
+
+.node {
+  position: relative;
+  margin-left: var(--json-indent);
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: calc(var(--json-indent) / -2 - 1px);
+    top: 0;
+    height: 100%;
+    border-left: 1px solid var(--json-border-color);
+  }
+
+  &:first-child {
+    margin-top: 0;
+  }
+
+  .key {
+    cursor: pointer;
+    user-select: none;
+    display: inline-flex;
+    align-items: center;
+    padding: 0 5px;
+    border-radius: 2px;
+    transition: background-color 0.15s ease-in-out;
+
+    &.collapsible:hover,
+    &.collapsible:active {
+      background-color: var(--json-hover-bg);
+    }
+
+    &.collapsible:focus-visible {
+      outline: 2px solid var(--json-focus-color);
+      outline-offset: 1px;
+      background-color: var(--json-hover-bg);
+    }
+
+    &.primitive {
+      cursor: default;
+
+      &:hover,
+      &:active {
+        background-color: transparent;
+      }
+    }
+  }
+
+  .keyName {
+    margin-right: 5px;
+    color: var(--json-key-color);
+  }
+
+  .dots {
+    color: var(--json-dots-color);
+  }
+
+  .size {
+    margin-left: 4px;
+    font-size: 11px;
+    color: var(--json-dots-color);
+    opacity: 0.7;
+  }
+
+  .bracket {
+    color: var(--json-key-color);
+  }
+
+  .children {
+    animation: fadeIn 0.15s ease-out;
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .children {
+    animation: none;
+  }
+
+  .arrow {
+    transition: none;
+  }
+
+  .copyButton {
+    transition: none;
+  }
+}
+
+.arrow {
+  display: inline-block;
+  margin-right: 5px;
+  border: 5px solid transparent;
+  border-left-color: var(--json-arrow-color);
+  transition: transform 0.2s ease-in-out;
+  transform-origin: center;
+
+  &.collapsed {
+    transform: rotate(0deg);
+  }
+
+  &.expanded {
+    transform: rotate(90deg);
+  }
+}
+
+.primitiveValue {
+  margin-left: 5px;
+
+  &.string {
+    color: var(--json-string-color);
+  }
+
+  &.number {
+    color: var(--json-number-color);
+  }
+
+  &.boolean {
+    color: var(--json-boolean-color);
+  }
+
+  &.null {
+    color: var(--json-null-color);
+    font-style: italic;
+    text-transform: uppercase;
+  }
+}
+
+.copyButton {
+  cursor: pointer;
+  background-color: var(--json-copy-bg);
+  border: 1px solid var(--json-copy-border);
+  border-radius: 3px;
+  padding: 2px 6px;
+  margin-left: 8px;
+  font-size: 14px;
+  line-height: 1;
+  color: var(--json-copy-text);
+  transition: all 0.2s ease-in-out;
+  opacity: 0.3;
+
+  @media (hover: none) and (pointer: coarse) {
+    opacity: 1;
+    background-color: #f5f5f5;
+  }
+
+  &:hover {
+    opacity: 1;
+    background-color: var(--json-copy-hover-bg);
+    border-color: var(--json-copy-hover-border);
+  }
+
+  &:focus-visible {
+    opacity: 1;
+    outline: 2px solid var(--json-focus-color);
+    outline-offset: 1px;
+  }
+
+  &:active {
+    transform: scale(0.95);
+  }
+}
+
+.copied {
+  background-color: var(--json-copied-bg);
+  border-color: var(--json-copied-border);
+  color: var(--json-copied-text);
+  opacity: 1;
+}
+
+.node:hover > .copyButton,
+.node:focus-within > .copyButton {
+  opacity: 1;
+}

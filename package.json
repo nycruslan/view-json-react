@@ -1,0 +1,103 @@
+{
+  "name": "view-json-react",
+  "version": "2.0.0",
+  "description": "A lightweight, performant React component for visualizing JSON data with collapsible nodes, dark mode, and copy functionality",
+  "type": "module",
+  "main": "./dist/view-json-react.cjs",
+  "module": "./dist/view-json-react.esm.js",
+  "types": "./dist/index.d.ts",
+  "sideEffects": false,
+  "author": "Ruslan Shulga",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/nycruslan/react-json-view.git"
+  },
+  "homepage": "https://github.com/nycruslan/react-json-view#readme",
+  "bugs": {
+    "url": "https://github.com/nycruslan/react-json-view/issues"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/view-json-react.esm.js",
+      "require": "./dist/view-json-react.cjs",
+      "default": "./dist/view-json-react.esm.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist/*.js",
+    "dist/*.cjs",
+    "dist/*.d.ts",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "npm run clean && vite build && npm run size",
+    "clean": "rimraf dist",
+    "lint": "eslint . --ext .ts,.tsx --fix",
+    "prepare": "npm run build",
+    "size": "size-limit",
+    "storybook": "storybook dev -p 6006",
+    "build-storybook": "storybook build"
+  },
+  "peerDependencies": {
+    "react": ">=18.0.0",
+    "react-dom": ">=18.0.0"
+  },
+  "devDependencies": {
+    "@size-limit/file": "^12.0.1",
+    "@storybook/addon-docs": "^10.3.2",
+    "@storybook/react": "^10.3.3",
+    "@storybook/react-vite": "^10.3.1",
+    "@types/node": "^25.5.0",
+    "@types/react": "^18.3.28",
+    "@types/react-dom": "^18.3.7",
+    "@typescript-eslint/eslint-plugin": "^8.57.1",
+    "@typescript-eslint/parser": "^8.57.1",
+    "@vitejs/plugin-react": "^6.0.1",
+    "eslint": "^10.1.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4",
+    "rimraf": "^6.0.1",
+    "sass": "^1.88.0",
+    "size-limit": "^12.0.1",
+    "storybook": "^10.3.3",
+    "typescript": "^5.9.3",
+    "vite": "^8.0.3",
+    "vite-plugin-css-injected-by-js": "^3.5.2",
+    "vite-plugin-dts": "^4.3.0"
+  },
+  "license": "MIT",
+  "keywords": [
+    "json",
+    "react",
+    "json viewer",
+    "json visualizer",
+    "react component",
+    "data visualization",
+    "collapsible json",
+    "expandable json",
+    "json tree view",
+    "json explorer",
+    "json parser",
+    "interactive json",
+    "development tool",
+    "web development",
+    "frontend",
+    "UI component",
+    "code visualization",
+    "json formatter",
+    "react library"
+  ],
+  "size-limit": [
+    {
+      "path": "dist/view-json-react.cjs",
+      "limit": "10 KB"
+    },
+    {
+      "path": "dist/view-json-react.esm.js",
+      "limit": "10 KB"
+    }
+  ]
+}

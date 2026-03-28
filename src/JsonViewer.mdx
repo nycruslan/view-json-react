@@ -1,0 +1,162 @@
+import { Meta, Canvas, Controls, Story } from '@storybook/addon-docs/blocks';
+import * as JsonViewerStories from './JsonViewer.stories';
+
+<Meta of={JsonViewerStories} />
+
+# JsonViewer
+
+A lightweight, performant React component for rendering JSON data with collapsible nodes, theme support, and copy-to-clipboard functionality.
+
+## Features
+
+- 🎨 **Light & Dark Theme** - Built-in theme support with CSS variables
+- 📦 **Collapsible Nodes** - Interactive expand/collapse for objects and arrays
+- 📋 **Copy to Clipboard** - Easily copy JSON values with visual feedback
+- 🎯 **Type-Safe** - Written in TypeScript with full type definitions
+- ⚡ **Lightweight** - Under 10KB (brotli compressed)
+- ♿ **Accessible** - Keyboard navigation and ARIA labels
+- 🎨 **Customizable** - CSS variables and className for easy theming
+- 📱 **Mobile-Friendly** - Touch device support with accessible controls
+- 🔧 **Flexible API** - Root naming, expand depth control, copy callbacks
+- 🌳 **Tree-Shakeable** - ESM build with proper side-effects declaration
+
+## Installation
+
+```bash
+npm install view-json-react
+```
+
+```bash
+pnpm add view-json-react
+```
+
+```bash
+yarn add view-json-react
+```
+
+## Basic Usage
+
+```tsx
+import { JsonViewer } from 'view-json-react';
+
+const data = {
+  name: 'John Doe',
+  age: 30,
+  email: 'john.doe@example.com',
+};
+
+function App() {
+  return <JsonViewer data={data} />;
+}
+```
+
+## Examples
+
+### Default (Light Theme)
+
+<Canvas of={JsonViewerStories.Default} />
+
+### Dark Theme
+
+Perfect for dark mode applications. Set `theme="dark"` to enable dark mode styling.
+
+<Canvas of={JsonViewerStories.DarkTheme} />
+
+### Default Expanded
+
+Use `defaultExpandDepth={10}` to show all nested objects and arrays expanded by default.
+
+<Canvas of={JsonViewerStories.DefaultExpanded} />
+
+### Show Object Size
+
+Enable `showObjectSize={true}` to display the number of items in objects and arrays.
+
+<Canvas of={JsonViewerStories.WithObjectSize} />
+
+### Array of Objects
+
+Arrays are displayed with numeric indices and support all the same features as objects.
+
+<Canvas of={JsonViewerStories.ArrayOfObjects} />
+
+### Primitive Types
+
+The component handles all JSON primitive types: strings, numbers, booleans, and null.
+
+<Canvas of={JsonViewerStories.PrimitiveTypes} />
+
+### With Root Name
+
+Assign a custom name to the root node for better context.
+
+<Canvas of={JsonViewerStories.WithRootName} />
+
+### Custom CSS Class
+
+Use the `className` prop to apply your own CSS classes for custom styling.
+
+<Canvas of={JsonViewerStories.WithClassName} />
+
+## Props
+
+<Controls />
+
+## Theming
+
+You can customize the appearance using CSS variables:
+
+```css
+.json-viewer {
+  --json-bg: #ffffff;
+  --json-text: #24292f;
+  --json-key: #0969da;
+  --json-string: #0a3069;
+  --json-number: #0550ae;
+  --json-boolean: #8250df;
+  --json-null: #57606a;
+  --json-bracket: #6e7781;
+  --json-hover-bg: #f6f8fa;
+  --json-border: #d0d7de;
+}
+```
+
+## TypeScript
+
+The component is fully typed and exports all necessary TypeScript definitions:
+
+```tsx
+import type { JsonValue, JsonViewerProps } from 'view-json-react';
+
+const data: JsonValue = {
+  foo: 'bar',
+  nested: { count: 42 },
+};
+
+const MyComponent = () => <JsonViewer data={data} theme="dark" />;
+```
+
+## Performance
+
+- **Bundle Size**: ~4.8KB (brotli), ~10KB (gzip)
+- **Zero Dependencies**: No runtime dependencies (React is a peer dependency)
+- **Tree-Shakeable**: ESM build with proper side-effects declaration
+- **Optimized Rendering**: Efficient re-renders with proper memoization
+
+## Accessibility
+
+- Keyboard navigation for collapsible nodes (Space/Enter to toggle)
+- Proper ARIA labels for screen readers
+- Semantic HTML structure
+- Focus indicators for interactive elements
+
+## Browser Support
+
+Works in all modern browsers that support:
+- CSS custom properties (CSS variables)
+- ES2015+ JavaScript
+- React 18+
+
+## License
+
+MIT
