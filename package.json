@@ -10,11 +10,11 @@
   "author": "Ruslan Shulga",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/nycruslan/react-json-view.git"
+    "url": "git+https://github.com/nycruslan/view-json-react.git"
   },
-  "homepage": "https://github.com/nycruslan/react-json-view#readme",
+  "homepage": "https://nycruslan.github.io/view-json-react/",
   "bugs": {
-    "url": "https://github.com/nycruslan/react-json-view/issues"
+    "url": "https://github.com/nycruslan/view-json-react/issues"
   },
   "exports": {
     ".": {
