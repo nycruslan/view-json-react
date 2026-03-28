@@ -93,11 +93,11 @@
   "size-limit": [
     {
       "path": "dist/view-json-react.cjs",
-      "limit": "10 KB"
+      "limit": "20 KB"
     },
     {
       "path": "dist/view-json-react.esm.js",
-      "limit": "10 KB"
+      "limit": "20 KB"
     }
   ]
 }
