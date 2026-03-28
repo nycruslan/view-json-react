@@ -1,6 +1,6 @@
 # JsonViewer Component Library
 
-**[Live Docs & Storybook](https://nycruslan.github.io/view-json-react/)**
+**[Live Docs & Storybook](https://nycruslan.github.io/view-json-react/?path=/docs/components-jsonviewer--docs)**
 
 Welcome to the JsonViewer component library! This React-based tool is designed to render JSON data in a beautifully structured, collapsible format. It offers a convenient and intuitive way to visualize JSON structures, with features that enhance both functionality and user experience.
 
@@ -10,7 +10,7 @@ Welcome to the JsonViewer component library! This React-based tool is designed t
 - 📦 **Collapsible Nodes** - Interactive expand/collapse for objects and arrays
 - 📋 **Copy to Clipboard** - Easily copy JSON values with visual feedback
 - 🎯 **Type-Safe** - Written in TypeScript with full type definitions
-- ⚡ **Lightweight** - Under 10KB (brotli compressed)
+- ⚡ **Lightweight** - ~5KB (brotli compressed)
 - ♿ **Accessible** - Keyboard navigation and ARIA labels
 - 🎨 **Customizable** - CSS variables and className for easy theming
 - 📱 **Mobile-Friendly** - Touch device support with accessible controls

@@ -12,7 +12,7 @@
     "type": "git",
     "url": "git+https://github.com/nycruslan/view-json-react.git"
   },
-  "homepage": "https://nycruslan.github.io/view-json-react/",
+  "homepage": "https://nycruslan.github.io/view-json-react/?path=/docs/components-jsonviewer--docs",
   "bugs": {
     "url": "https://github.com/nycruslan/view-json-react/issues"
   },
