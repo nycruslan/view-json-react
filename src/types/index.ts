@@ -1,3 +1,5 @@
+import type { CSSProperties } from 'react';
+
 // JSON type definitions with proper type safety
 export type JsonPrimitive = string | number | boolean | null;
 export type JsonObject = { [key: string]: JsonValue };
@@ -5,7 +7,7 @@ export type JsonArray = JsonValue[];
 export type JsonValue = JsonPrimitive | JsonObject | JsonArray;
 
 // Type guard for collapsible nodes
-export const isCollapsible = (value: JsonValue): value is JsonObject | JsonArray => {
+export const isCollapsible = (value: unknown): value is JsonObject | JsonArray => {
   return typeof value === 'object' && value !== null;
 };
 
@@ -22,11 +24,11 @@ export type OnCopyProps = {
 
 // Public API props
 export interface JsonViewerProps {
-  data: JsonValue;
+  data: unknown;
   defaultExpandDepth?: number;
   rootName?: string;
   className?: string;
-  style?: React.CSSProperties;
+  style?: CSSProperties;
   theme?: 'light' | 'dark';
   showObjectSize?: boolean;
   onCopy?: (copyInfo: OnCopyProps) => void;

@@ -1,10 +1,57 @@
-# Migration Guide: v1 → v2
+# Migration Guide
 
-## Overview
+## v2.0.0 → v2.1.0
+
+### Overview
+
+v2.1.0 is a non-breaking patch that hardens the package for real-world consumers.
+
+### Changes
+
+**Copy button now writes to clipboard by default.**
+Previously, the copy button only appeared when `onCopy` was provided, and the consumer was responsible for writing to the clipboard. Now the button is always visible and writes to `navigator.clipboard` automatically. `onCopy` remains optional and fires as a notification callback after the copy.
+
+```jsx
+// Before — copy button invisible without onCopy, no clipboard write
+<JsonViewer data={data} onCopy={({ path, value }) => navigator.clipboard.writeText(JSON.stringify(value))} />
+
+// After — clipboard write is automatic, onCopy is optional notification
+<JsonViewer data={data} />
+<JsonViewer data={data} onCopy={({ path, value }) => console.log('copied', path)} />
+```
+
+**`data` prop now accepts `unknown`.**
+Previously `data` was typed as `JsonValue`, which caused TypeScript errors when passing plain typed objects. It now accepts `unknown` so any value can be passed without a cast.
+
+```tsx
+// Before — TypeScript error without cast
+interface User { name: string; age: number }
+const user: User = { name: 'Alice', age: 30 };
+<JsonViewer data={user as JsonValue} />
+
+// After — works directly
+<JsonViewer data={user} />
+```
+
+**ESLint upgraded to flat config (eslint.config.js).**
+The old `.eslintrc.cjs` has been replaced with `eslint.config.js` compatible with ESLint 10.
+
+**`@types/react` upgraded to v19** to match the installed React 19 devDependency.
+
+**Source maps included in published package.**
+`dist/*.map` files are now included so debuggers can map into library source.
+
+**No action required** for existing consumers — all changes are backward compatible.
+
+---
+
+## v1 → v2.0.0
+
+### Overview
 
 Version 2.0.0 is a major update that improves performance, adds new features, and refines the API for better clarity. This guide will help you migrate from v1.x to v2.0.0.
 
-## Quick Summary
+### Quick Summary
 
 **Breaking Changes:**
 - **React 18+ now required** (was React 17+) — React 19 is fully supported
@@ -282,8 +329,8 @@ import type { OnCopyProps } from 'view-json-react';
 If you encounter issues during migration:
 
 1. Check this guide thoroughly
-2. Review the [v2.0.0 changelog](https://github.com/nycruslan/react-json-view/releases)
-3. Open an issue on [GitHub](https://github.com/nycruslan/react-json-view/issues)
+2. Review the [v2.0.0 changelog](https://github.com/nycruslan/view-json-react/releases)
+3. Open an issue on [GitHub](https://github.com/nycruslan/view-json-react/issues)
 
 ## Summary
 

@@ -1,12 +1,13 @@
 import { memo } from 'react';
+import type React from 'react';
 import { JsonNode } from './JsonNode';
 import { CopyButton } from './CopyButton';
 import { useCollapsible } from '../hooks';
 import { getFullPath } from '../types';
-import type { JsonNodeProps } from '../types';
+import type { JsonNodeProps, JsonObject, JsonValue } from '../types';
 import styles from '../styles.module.scss';
 
-export const ObjectNode: React.FC<JsonNodeProps> = memo(({
+export const ObjectNode: React.FC<JsonNodeProps> = memo(function ObjectNode({
   data,
   name,
   path,
@@ -15,7 +16,7 @@ export const ObjectNode: React.FC<JsonNodeProps> = memo(({
   rootName,
   showObjectSize,
   onCopy,
-}) => {
+}) {
   const isArray = Array.isArray(data);
   const [openBracket, closeBracket] = isArray ? ['[', ']'] : ['{', '}'];
   const displayName = path.length === 0 && rootName ? rootName : name;
@@ -24,12 +25,12 @@ export const ObjectNode: React.FC<JsonNodeProps> = memo(({
   const { collapsed, toggle } = useCollapsible(shouldStartCollapsed);
 
   const entries = isArray
-    ? (data as unknown[]).map((val, idx) => [String(idx), val] as const)
-    : Object.entries(data as object);
+    ? (data as JsonValue[]).map((val, idx) => [String(idx), val] as [string, JsonValue])
+    : Object.entries(data as JsonObject);
 
   const handleCopy = () => {
-    if (!onCopy) return;
-    onCopy({ path: getFullPath(path, rootName), value: data });
+    navigator.clipboard?.writeText(JSON.stringify(data, null, 2));
+    onCopy?.({ path: getFullPath(path, rootName), value: data });
   };
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
@@ -68,7 +69,7 @@ export const ObjectNode: React.FC<JsonNodeProps> = memo(({
           openBracket
         )}
       </span>
-      {onCopy && <CopyButton handleCopy={handleCopy} />}
+      <CopyButton handleCopy={handleCopy} />
 
       {!collapsed && (
         <>

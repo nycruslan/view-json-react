@@ -1,5 +1,6 @@
 import { memo } from 'react';
-import type { JsonViewerProps } from './types';
+import type React from 'react';
+import type { JsonValue, JsonViewerProps } from './types';
 import { JsonNode } from './components/JsonNode';
 import styles from './styles.module.scss';
 
@@ -11,11 +12,11 @@ import styles from './styles.module.scss';
  * @param {unknown} props.data - The JSON data to visualize.
  * @param {string} [props.rootName] - Optional name for the root node.
  * @param {string} [props.className] - Optional CSS class name for the viewer container.
- * @param {React.CSSProperties} [props.style] - Optional CSS styles for the viewer container.
+ * @param {CSSProperties} [props.style] - Optional CSS styles for the viewer container.
  * @param {number} [props.defaultExpandDepth=1] - How many levels to expand by default (1 = expand first level).
  * @param {'light' | 'dark'} [props.theme='light'] - Color theme for the viewer.
  * @param {boolean} [props.showObjectSize=true] - Show size count for collapsed objects/arrays.
- * @param {Function} [props.onCopy] - Optional callback when copy button is clicked.
+ * @param {Function} [props.onCopy] - Optional callback when copy button is clicked. Clipboard write happens by default.
  *
  * @example
  * <JsonViewer
@@ -28,7 +29,7 @@ import styles from './styles.module.scss';
  *   onCopy={(info) => console.log('Copied:', info)}
  * />
  */
-export const JsonViewer: React.FC<JsonViewerProps> = memo(({
+export const JsonViewer: React.FC<JsonViewerProps> = memo(function JsonViewer({
   data,
   rootName,
   className,
@@ -37,7 +38,7 @@ export const JsonViewer: React.FC<JsonViewerProps> = memo(({
   defaultExpandDepth = 1,
   showObjectSize = true,
   onCopy,
-}) => {
+}) {
   const viewerClass = [
     styles.viewer,
     theme === 'dark' && styles.dark,
@@ -47,7 +48,7 @@ export const JsonViewer: React.FC<JsonViewerProps> = memo(({
   return (
     <div className={viewerClass} style={style}>
       <JsonNode
-        data={data}
+        data={data as JsonValue}
         path={[]}
         depth={0}
         defaultExpandDepth={defaultExpandDepth}
@@ -58,3 +59,4 @@ export const JsonViewer: React.FC<JsonViewerProps> = memo(({
     </div>
   );
 });
+

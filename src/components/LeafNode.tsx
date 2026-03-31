@@ -1,22 +1,23 @@
 import { memo } from 'react';
+import type React from 'react';
 import { CopyButton } from './CopyButton';
 import { getFullPath } from '../types';
 import type { JsonNodeProps } from '../types';
 import styles from '../styles.module.scss';
 
-export const LeafNode: React.FC<JsonNodeProps> = memo(({
+export const LeafNode: React.FC<JsonNodeProps> = memo(function LeafNode({
   data,
   name,
   path,
   rootName,
   onCopy,
-}) => {
+}) {
   const valueType = data === null ? 'null' : typeof data;
   const displayName = path.length === 0 && rootName ? rootName : name;
 
   const handleCopy = () => {
-    if (!onCopy) return;
-    onCopy({ path: getFullPath(path, rootName), value: data });
+    navigator.clipboard?.writeText(JSON.stringify(data));
+    onCopy?.({ path: getFullPath(path, rootName), value: data });
   };
 
   return (
@@ -29,7 +30,7 @@ export const LeafNode: React.FC<JsonNodeProps> = memo(({
       <span className={`${styles.primitiveValue} ${styles[valueType] || ''}`}>
         {JSON.stringify(data)}
       </span>
-      {onCopy && <CopyButton handleCopy={handleCopy} />}
+      <CopyButton handleCopy={handleCopy} />
     </div>
   );
 });

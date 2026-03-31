@@ -33,6 +33,10 @@ const meta = {
       control: 'boolean',
       description: 'Show object/array item count',
     },
+    onCopy: {
+      description: 'Optional callback fired when a copy button is clicked. Clipboard write happens automatically regardless.',
+      action: 'copied',
+    },
   },
 } satisfies Meta<typeof JsonViewer>;
 
@@ -194,6 +198,25 @@ export const WithClassName: Story = {
     docs: {
       description: {
         story: 'Demonstrates using the className prop for custom styling. Add your own CSS class to customize appearance.',
+      },
+    },
+  },
+};
+
+export const WithCopyCallback: Story = {
+  args: {
+    data: sampleData,
+    theme: 'light',
+    onCopy: ({ path, value }) => {
+      console.log('Copied path:', path);
+      console.log('Copied value:', value);
+    },
+  },
+  parameters: {
+    docs: {
+      description: {
+        story:
+          'Copy buttons are always visible. Clicking any copy button writes the value to clipboard automatically. The optional `onCopy` callback is fired as a notification with the `path` and `value` that was copied.',
       },
     },
   },
