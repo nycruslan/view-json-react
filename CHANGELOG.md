@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [2.1.1] - 2026-03-31
+
+### Fixed
+- **Storybook addon compatibility**: Externalized `react/jsx-runtime` — the ESM bundle now imports `jsx`/`jsxs`/`Fragment` from `react/jsx-runtime` instead of inlining a CJS shim. This fixes the "Dynamic require of react is not supported" error in Storybook's esbuild manager.
+- Bundle size reduced by ~45% (from ~17KB to ~9KB gzip: 5.7KB → 3KB) after externalizing JSX runtime
+
+---
+
 ## [2.1.0] - 2026-03-31
 
 ### Added
@@ -81,7 +89,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Light theme
 - TypeScript support
 
-[Unreleased]: https://github.com/nycruslan/view-json-react/compare/v2.1.0...HEAD
+[Unreleased]: https://github.com/nycruslan/view-json-react/compare/v2.1.1...HEAD
+[2.1.1]: https://github.com/nycruslan/view-json-react/compare/v2.1.0...v2.1.1
 [2.1.0]: https://github.com/nycruslan/view-json-react/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/nycruslan/view-json-react/compare/v1.1.2...v2.0.0
 [1.1.2]: https://github.com/nycruslan/view-json-react/compare/v1.1.0...v1.1.2
