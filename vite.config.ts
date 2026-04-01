@@ -21,7 +21,7 @@ export default defineConfig({
         format === 'es' ? 'view-json-react.esm.js' : 'view-json-react.cjs',
     },
     rollupOptions: {
-      external: ['react', 'react-dom'],
+      external: ['react', 'react-dom', 'react/jsx-runtime', 'react/jsx-runtime.js'],
       output: {
         exports: 'named',
         globals: {
