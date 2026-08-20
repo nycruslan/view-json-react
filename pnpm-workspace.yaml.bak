@@ -1,0 +1,5 @@
+# Supply-chain protection: refuse package versions published less than 24h
+# ago. pnpm 11 enforces this by default in CI; declaring it here makes local
+# installs (pnpm 10.16+) resolve under the same policy, so a lockfile that
+# violates it can never be authored locally in the first place.
+minimumReleaseAge: 1440
