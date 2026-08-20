@@ -1,6 +1,6 @@
 {
   "name": "view-json-react",
-  "version": "2.1.1",
+  "version": "2.1.2",
   "description": "A lightweight, performant React component for visualizing JSON data with collapsible nodes, dark mode, and copy functionality",
   "type": "module",
   "main": "./dist/view-json-react.cjs",
@@ -57,30 +57,35 @@
     "react-dom": ">=18.0.0"
   },
   "devDependencies": {
-    "@size-limit/file": "^12.0.1",
-    "@storybook/addon-docs": "^10.3.2",
-    "@storybook/react": "^10.3.3",
-    "@storybook/react-vite": "^10.3.1",
-    "@types/node": "^25.5.0",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
-    "@typescript-eslint/eslint-plugin": "^8.57.1",
-    "@typescript-eslint/parser": "^8.57.1",
-    "eslint-plugin-react-hooks": "^7.0.0",
-    "eslint-plugin-react-refresh": "^0.4.20",
-    "@vitejs/plugin-react": "^6.0.1",
-    "eslint": "^10.1.0",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4",
-    "sass": "^1.88.0",
-    "size-limit": "^12.0.1",
-    "storybook": "^10.3.3",
+    "@size-limit/file": "^13.0.3",
+    "@storybook/addon-docs": "^10.5.9",
+    "@storybook/react": "^10.5.9",
+    "@storybook/react-vite": "^10.5.9",
+    "@types/node": "^26.2.0",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.4",
+    "@typescript-eslint/eslint-plugin": "^8.67.0",
+    "@typescript-eslint/parser": "^8.67.0",
+    "@vitejs/plugin-react": "^6.1.0",
+    "eslint": "^10.8.1",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "eslint-plugin-react-refresh": "^0.4.26",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "sass": "^1.103.0",
+    "size-limit": "^13.0.3",
+    "storybook": "^10.5.9",
     "typescript": "^5.9.3",
-    "vite": "^8.0.3",
+    "vite": "^8.2.1",
     "vite-plugin-css-injected-by-js": "^3.5.2",
-    "vite-plugin-dts": "^4.3.0"
+    "vite-plugin-dts": "^4.5.4"
   },
   "license": "MIT",
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  },
   "keywords": [
     "json",
     "react",

@@ -8,6 +8,18 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [2.1.2] - 2026-08-19
+
+### Security
+- Resolved all 31 known vulnerabilities (22 high, 7 moderate, 2 low) reported by `pnpm audit`. All were in transitive devDependencies (`vite`, `ws`, `postcss`, `brace-expansion`, `fast-uri`, `immutable`, `nanoid`, `lodash`, `esbuild`, `@babel/core`) — the published package has no runtime dependencies, so consumers were never exposed.
+
+### Changed
+- Updated devDependencies: Storybook 10.3 → 10.5, Vite 8.0 → 8.2, ESLint 10.1 → 10.8, size-limit 12 → 13, plus latest React 19.2.x, sass, and typescript-eslint
+- Allowlisted `esbuild`'s install script via `pnpm.onlyBuiltDependencies` (required by pnpm 10's script-blocking security default)
+- Added `storybook-static/` to `.gitignore`
+
+---
+
 ## [2.1.1] - 2026-03-31
 
 ### Fixed
@@ -89,7 +101,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Light theme
 - TypeScript support
 
-[Unreleased]: https://github.com/nycruslan/view-json-react/compare/v2.1.1...HEAD
+[Unreleased]: https://github.com/nycruslan/view-json-react/compare/v2.1.2...HEAD
+[2.1.2]: https://github.com/nycruslan/view-json-react/compare/v2.1.1...v2.1.2
 [2.1.1]: https://github.com/nycruslan/view-json-react/compare/v2.1.0...v2.1.1
 [2.1.0]: https://github.com/nycruslan/view-json-react/compare/v2.0.0...v2.1.0
 [2.0.0]: https://github.com/nycruslan/view-json-react/compare/v1.1.2...v2.0.0
