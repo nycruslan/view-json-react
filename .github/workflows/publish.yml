@@ -8,6 +8,13 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    # OIDC for npm Trusted Publishing: no long-lived token to expire or leak.
+    # Requires the trusted publisher to be configured once on npmjs.com
+    # (package Settings → Publishing access → GitHub Actions,
+    # repo nycruslan/view-json-react, workflow publish.yml).
+    permissions:
+      id-token: write
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,5 +37,3 @@ jobs:
 
       - name: Publish
         run: pnpm publish --no-git-checks --access public
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
