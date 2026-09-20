@@ -8,26 +8,28 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    # OIDC for npm Trusted Publishing: no long-lived token to expire or leak.
-    # Requires the trusted publisher to be configured once on npmjs.com
-    # (package Settings → Publishing access → GitHub Actions,
-    # repo nycruslan/view-json-react, workflow publish.yml).
+    # OIDC for npm Trusted Publishing: no long-lived npm token.
+    # The trusted publisher is restricted to staging; a maintainer must review
+    # and approve every release with npm 2FA before it becomes public.
     permissions:
-      id-token: write
       contents: read
+      id-token: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v7
         with:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
-          cache: 'pnpm'
+          package-manager-cache: false
+
+      - name: Setup npm 12
+        run: npm install --global npm@12.0.2 --ignore-scripts
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
@@ -35,5 +37,8 @@ jobs:
       - name: Build
         run: pnpm build
 
-      - name: Publish
-        run: pnpm publish --no-git-checks --access public
+      - name: Inspect package
+        run: npm pack --dry-run
+
+      - name: Stage package on npm
+        run: npm stage publish --access public
