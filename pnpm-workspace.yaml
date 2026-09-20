@@ -1,7 +1,7 @@
 # Supply-chain protection: refuse package versions published less than 24h
-# ago. Enforced by pnpm 11 (default policy); declared explicitly so the
+# ago. Enforced by pnpm 12 (default policy); declared explicitly so the
 # quarantine window is visible in-repo and survives pnpm default changes.
-# The packageManager pin in package.json keeps everyone on pnpm 11.
+# The packageManager pin in package.json keeps everyone on pnpm 12.
 minimumReleaseAge: 1440
 
 # Build-script approval (pnpm 11 syntax). esbuild needs its postinstall to
