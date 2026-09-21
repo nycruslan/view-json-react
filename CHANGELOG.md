@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+### Added
+- A tested headless data model with safe traversal, cycle detection, JSON Pointer paths, value formatting, redaction, and serialization guards.
+- Pull-request quality gates for linting, type checking, tests, builds, dependency audits, and Storybook.
+
+### Changed
+- Began the v3 prerelease line as `3.0.0-next.0`.
+- Replaced mutating lint defaults and install-time builds with explicit check and prepack commands.
+
 ---
 
 ## [2.1.3] - 2026-08-20
