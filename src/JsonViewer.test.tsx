@@ -47,6 +47,18 @@ describe('JsonViewer', () => {
     fireEvent.keyDown(tree, { key: 'ArrowLeft' });
     expect(nested).toHaveAttribute('aria-expanded', 'false');
 
+    fireEvent.keyDown(tree, { key: 'End' });
+    expect(tree).toHaveAttribute(
+      'aria-activedescendant',
+      screen.getByRole('treeitem', { name: /other, number/i }).id,
+    );
+    fireEvent.keyDown(tree, { key: 'Home' });
+    fireEvent.keyDown(tree, { key: 'o' });
+    expect(tree).toHaveAttribute(
+      'aria-activedescendant',
+      screen.getByRole('treeitem', { name: /other, number/i }).id,
+    );
+
     fireEvent.keyDown(tree, { key: 'Home' });
     fireEvent.keyDown(tree, { key: 'Enter' });
     expect(screen.getAllByRole('treeitem')).toHaveLength(1);
@@ -83,6 +95,29 @@ describe('JsonViewer', () => {
       error: expect.any(DOMException),
     }));
     expect(screen.getByRole('status')).toHaveTextContent('Could not copy');
+  });
+
+  it('copies typed paths without including the display-only root name', async () => {
+    const writeText = installClipboard();
+    const onCopy = vi.fn();
+    render(
+      <JsonViewer
+        data={{ users: [{ name: 'Ada' }] }}
+        rootName="response"
+        defaultExpandDepth={4}
+        copy={{ value: false, path: true }}
+        onCopy={onCopy}
+      />,
+    );
+
+    fireEvent.click(screen.getByRole('button', { name: 'Copy path of name' }));
+    await waitFor(() => expect(onCopy).toHaveBeenCalledTimes(1));
+    expect(writeText).toHaveBeenCalledWith('$.users[0].name');
+    expect(onCopy).toHaveBeenCalledWith(expect.objectContaining({
+      path: ['users', 0, 'name'],
+      kind: 'path',
+      success: true,
+    }));
   });
 
   it('supports controlled expansion', () => {

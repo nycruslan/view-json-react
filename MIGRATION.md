@@ -1,340 +1,177 @@
 # Migration Guide
 
-## v2.0.0 → v2.1.0
+## v2 → v3
 
-### Overview
+v3 replaces the recursive display component with a safe data model and an accessible ARIA tree. It remains a read-only viewer, supports React 18 and 19, and has no runtime dependencies.
 
-v2.1.0 is a non-breaking patch that hardens the package for real-world consumers.
+### 1. Import the stylesheet
 
-### Changes
-
-**Copy button now writes to clipboard by default.**
-Previously, the copy button only appeared when `onCopy` was provided, and the consumer was responsible for writing to the clipboard. Now the button is always visible and writes to `navigator.clipboard` automatically. `onCopy` remains optional and fires as a notification callback after the copy.
-
-```jsx
-// Before — copy button invisible without onCopy, no clipboard write
-<JsonViewer data={data} onCopy={({ path, value }) => navigator.clipboard.writeText(JSON.stringify(value))} />
-
-// After — clipboard write is automatic, onCopy is optional notification
-<JsonViewer data={data} />
-<JsonViewer data={data} onCopy={({ path, value }) => console.log('copied', path)} />
-```
-
-**`data` prop now accepts `unknown`.**
-Previously `data` was typed as `JsonValue`, which caused TypeScript errors when passing plain typed objects. It now accepts `unknown` so any value can be passed without a cast.
+v2 injected CSS from JavaScript. v3 publishes static CSS for CSP, SSR, caching, and predictable bundling.
 
 ```tsx
-// Before — TypeScript error without cast
-interface User { name: string; age: number }
-const user: User = { name: 'Alice', age: 30 };
-<JsonViewer data={user as JsonValue} />
-
-// After — works directly
-<JsonViewer data={user} />
+import { JsonViewer } from 'view-json-react';
+import 'view-json-react/styles.css';
 ```
 
-**ESLint upgraded to flat config (eslint.config.js).**
-The old `.eslintrc.cjs` has been replaced with `eslint.config.js` compatible with ESLint 10.
+Import the stylesheet once through your application's global CSS entry. The component will be unstyled if it is omitted.
 
-**`@types/react` upgraded to v19** to match the installed React 19 devDependency.
+### 2. Update custom CSS tokens and selectors
 
-**Source maps included in published package.**
-`dist/*.map` files are now included so debuggers can map into library source.
+The v2 `--json-*` variables and CSS-module-generated class names no longer exist. v3's stable public tokens use the `--vjr-*` prefix.
 
-**No action required** for existing consumers — all changes are backward compatible.
+```tsx
+// v2
+<JsonViewer style={{ '--json-bg-color': '#111' } as React.CSSProperties} />
 
----
-
-## v1 → v2.0.0
-
-### Overview
-
-Version 2.0.0 is a major update that improves performance, adds new features, and refines the API for better clarity. This guide will help you migrate from v1.x to v2.0.0.
-
-### Quick Summary
-
-**Breaking Changes:**
-- **React 18+ now required** (was React 17+) — React 19 is fully supported
-- `expandLevel` prop renamed to `defaultExpandDepth`
-- `onCopy` callback parameter `keys` renamed to `path`
-
-**New Features:**
-- Dark theme support via `theme` prop
-- Custom CSS classes via `className` prop
-- Object size display via `showObjectSize` prop (enabled by default)
-- CSS variable theming support
-- Improved TypeScript types
-
-## Breaking Changes
-
-### 1. React 18+ Required
-
-**Why?** v2 leverages React 18+ features for better performance and aligns with the modern React ecosystem. React 19 is fully supported and tested.
-
-**v1.x:**
-```json
-{
-  "peerDependencies": {
-    "react": ">=17.0.0",
-    "react-dom": ">=17.0.0"
-  }
-}
-```
-
-**v2.0.0:**
-```json
-{
-  "peerDependencies": {
-    "react": ">=18.0.0",
-    "react-dom": ">=18.0.0"
-  }
-}
-```
-
-**Migration:**
-- Ensure your project uses React 18 or later (React 19 fully supported)
-- If still on React 17, upgrade React first:
-  ```bash
-  npm install react@^18 react-dom@^18
-  # or for React 19
-  npm install react@^19 react-dom@^19
-  ```
-
----
-
-### 2. Prop Rename: `expandLevel` → `defaultExpandDepth`
-
-**Why?** The new name is more descriptive and aligns with React naming conventions.
-
-**v1.x:**
-```jsx
+// v3: custom properties are included in the style prop type
 <JsonViewer
-  data={myData}
-  expandLevel={2}
-/>
-```
-
-**v2.0.0:**
-```jsx
-<JsonViewer
-  data={myData}
-  defaultExpandDepth={2}
-/>
-```
-
-**Migration:**
-- Find and replace `expandLevel=` with `defaultExpandDepth=`
-- Functionality remains identical
-
----
-
-### 3. Callback Parameter: `keys` → `path`
-
-**Why?** "Path" is more semantically accurate for describing the location within a JSON structure.
-
-**v1.x:**
-```jsx
-<JsonViewer
-  data={myData}
-  onCopy={({ keys, value }) => {
-    console.log('Keys:', keys);
-    console.log('Value:', value);
-  }}
-/>
-```
-
-**v2.0.0:**
-```jsx
-<JsonViewer
-  data={myData}
-  onCopy={({ path, value }) => {
-    console.log('Path:', path);
-    console.log('Value:', value);
-  }}
-/>
-```
-
-**Migration:**
-- In your `onCopy` callback, rename the `keys` parameter to `path`
-- The array content is identical, only the property name changed
-
----
-
-## New Features (Backward Compatible)
-
-### Dark Theme Support
-
-```jsx
-<JsonViewer
-  data={myData}
-  theme="dark"
-/>
-```
-
-### Custom CSS Classes
-
-```jsx
-<JsonViewer
-  data={myData}
-  className="my-custom-class"
-/>
-```
-
-### Object Size Display
-
-Enabled by default in v2. Disable if needed:
-
-```jsx
-<JsonViewer
-  data={myData}
-  showObjectSize={false}
-/>
-```
-
-### CSS Variable Theming
-
-Override theme colors:
-
-```jsx
-<JsonViewer
-  data={myData}
+  data={data}
   style={{
-    '--json-key': '#ff0000',
-    '--json-string': '#00ff00',
+    '--vjr-background': '#111',
+    '--vjr-text': '#eee',
+    '--vjr-key': '#80bfff',
   }}
 />
 ```
 
-## TypeScript Changes
+Prefer variables over targeting internal `.vjr-*` structural classes. See the README for the token list.
 
-### Improved Type Definitions
+### 3. Update `onCopy`
 
-**v1.x:**
-```typescript
-type JsonValue = unknown;
+v2 notified immediately and could report success even when the asynchronous clipboard write failed. v3 waits for the write and reports its outcome.
+
+```tsx
+// v2
+<JsonViewer onCopy={({ path, value }) => console.log(path, value)} />
+
+// v3
+<JsonViewer
+  data={data}
+  onCopy={({ path, value, text, kind, success, error }) => {
+    if (success) console.log(kind, path, value, text);
+    else console.error(error);
+  }}
+/>
 ```
 
-**v2.0.0:**
-```typescript
-type JsonPrimitive = string | number | boolean | null;
-type JsonObject = { [key: string]: JsonValue };
-type JsonArray = JsonValue[];
-type JsonValue = JsonPrimitive | JsonObject | JsonArray;
+Other changes:
+
+- `path` is now `readonly (string | number)[]`; array indexes are numbers.
+- `rootName` is display-only and is never inserted into a path.
+- `OnCopyProps` remains as a deprecated alias for `CopyResult`.
+- Clipboard denial or an unsupported browser is a reported failure, not a silent no-op.
+- `copy={false}` removes copy actions. Use `copy={{ value: true, path: true }}` to add path copying.
+
+### 4. Review expansion behavior
+
+`defaultExpandDepth` remains, but expansion can now be controlled with JSON Pointer strings.
+
+```tsx
+const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set(['']));
+
+<JsonViewer
+  data={data}
+  expandedPaths={expanded}
+  onExpandedPathsChange={setExpanded}
+/>
 ```
 
-**Impact:**
-- Better type safety and autocomplete
-- Non-breaking for JavaScript users
-- TypeScript users get improved type checking
+- `''` is the root pointer.
+- `'/users/0'` points to the first user.
+- `defaultExpandedPaths` is used only for initial uncontrolled state.
+- `onExpand` receives `{ path, value, expanded }`.
 
-### Updated Callback Type
+Do not depend on the old recursive DOM remaining mounted after a branch is collapsed.
 
-```typescript
-// v1.x
-type onCopyProps = { keys: string[]; value: JsonValue };
+### 5. Account for the ARIA tree interaction model
 
-// v2.0.0
-type OnCopyProps = { path: string[]; value: JsonValue };
+v2 exposed every branch control as an independent tab stop. v3 has one managed tree focus target and follows the WAI-ARIA Tree View keyboard model.
+
+If application tests queried the old buttons or DOM nesting, migrate them to roles and accessible names:
+
+```tsx
+const tree = screen.getByRole('tree', { name: 'JSON data' });
+tree.focus();
+await user.keyboard('{ArrowDown}{ArrowRight}');
+expect(screen.getByRole('treeitem', { name: /profile, object/i }))
+  .toHaveAttribute('aria-expanded', 'true');
 ```
 
-## Performance Improvements
+Custom `onKeyDown` handlers run first. Calling `event.preventDefault()` opts out of built-in handling for that event.
 
-v2.0.0 includes significant performance improvements:
+### 6. Review non-JSON value output
 
-- Removed React Context overhead (30% faster rendering)
-- Optimized component splitting (LeafNode vs ObjectNode)
-- Better memoization strategy
-- Cleaned up unnecessary re-renders
+v2 could render blanks, empty objects, misleading values, or throw for JavaScript values. v3 explicitly formats them:
 
-**No action needed** - these improvements are automatic.
+- `bigint`, `undefined`, symbols, functions, dates, regular expressions, errors
+- `NaN`, infinities, and `-0`
+- maps, sets, and typed arrays as summarized leaf values
+- sparse-array holes and accessor descriptors
+- cycles as reference rows
+- revoked or throwing values as unavailable rows where possible
 
-## Bundle Size
+Valid JSON keeps its familiar representation. To override leaf rendering, use `renderValue`. To override copied serialization, use `copy.stringify`.
 
-- **v1.x:** ~6KB (gzip)
-- **v2.0.0:** ~4.8KB (brotli), ~5.5KB (gzip)
+### 7. Choose the large-data entry when needed
 
-Smaller and faster! 🚀
+The standard viewer has lazy expansion and safety limits. For large expanded arrays or objects, switch imports:
 
-## Step-by-Step Migration
+```tsx
+import { VirtualJsonViewer } from 'view-json-react/virtual';
+import 'view-json-react/styles.css';
 
-1. **Update the package:**
-   ```bash
-   npm install view-json-react@^2.0.0
-   # or
-   pnpm add view-json-react@^2.0.0
-   # or
-   yarn add view-json-react@^2.0.0
-   ```
-
-2. **Find and replace prop names:**
-   - Search: `expandLevel=`
-   - Replace: `defaultExpandDepth=`
-
-3. **Update onCopy callbacks:**
-   - Search: `({ keys, value })`
-   - Replace: `({ path, value })`
-
-4. **Update TypeScript types (if applicable):**
-   - Search: `onCopyProps`
-   - Replace: `OnCopyProps`
-
-5. **Test your application:**
-   - Verify JSON rendering looks correct
-   - Test expand/collapse functionality
-   - Verify copy callbacks work as expected
-
-## Common Migration Issues
-
-### Issue: "expandLevel prop not working"
-
-**Cause:** You didn't rename the prop to `defaultExpandDepth`.
-
-**Fix:**
-```jsx
-// ❌ Wrong (v1.x syntax)
-<JsonViewer expandLevel={2} />
-
-// ✅ Correct (v2.0.0 syntax)
-<JsonViewer defaultExpandDepth={2} />
+<VirtualJsonViewer data={data} height={480} />
 ```
 
-### Issue: "onCopy callback receives undefined"
+The virtual entry is intentionally separate so the standard bundle does not include windowing code.
 
-**Cause:** You're destructuring `keys` instead of `path`.
+### 8. Replace deep imports
 
-**Fix:**
-```jsx
-// ❌ Wrong (v1.x syntax)
-onCopy={({ keys, value }) => console.log(keys)}
+Only documented package exports are supported:
 
-// ✅ Correct (v2.0.0 syntax)
-onCopy={({ path, value }) => console.log(path)}
+```ts
+import { JsonViewer } from 'view-json-react';
+import { VirtualJsonViewer } from 'view-json-react/virtual';
+import { buildVisibleTree } from 'view-json-react/headless';
+import 'view-json-react/styles.css';
 ```
 
-### Issue: "TypeScript error with OnCopyProps type"
+Imports from `view-json-react/dist/*` or old source paths are blocked by package exports.
 
-**Cause:** Type name changed from lowercase `onCopyProps` to `OnCopyProps`.
+### 9. Search is controlled
 
-**Fix:**
-```typescript
-// ❌ Wrong (v1.x syntax)
-import type { onCopyProps } from 'view-json-react';
+v3 does not impose a search toolbar. Connect `searchQuery` to your own UI:
 
-// ✅ Correct (v2.0.0 syntax)
-import type { OnCopyProps } from 'view-json-react';
+```tsx
+<input value={query} onChange={event => setQuery(event.target.value)} />
+<JsonViewer data={data} searchQuery={query} />
 ```
 
-## Need Help?
+`F3` and `Shift+F3` move through matches while the tree is focused. The imperative ref also exposes `nextMatch()` and `previousMatch()`.
 
-If you encounter issues during migration:
+### 10. Check security and CSP expectations
 
-1. Check this guide thoroughly
-2. Review the [v2.0.0 changelog](https://github.com/nycruslan/view-json-react/releases)
-3. Open an issue on [GitHub](https://github.com/nycruslan/view-json-react/issues)
+- The standard viewer no longer creates a runtime `<style>` element.
+- Redaction affects copied text; it does not hide the visible row.
+- Enumerable getters are not invoked during normal inspection.
+- Custom renderers are responsible for their own output safety.
+- The virtual viewer uses inline positioning styles, which matters under `style-src-attr 'none'`.
 
-## Summary
+### Recommended migration sequence
 
-✅ **3 Breaking Changes** - React 18+ required, simple prop renames
-✅ **Smaller Bundle** - from 6KB to 4.8KB
+1. Install a v3 prerelease and import `view-json-react/styles.css`.
+2. Remove v2 CSS selector overrides and migrate variables to `--vjr-*`.
+3. Update `onCopy` types and assertions.
+4. Update tests to query `tree` and `treeitem` roles.
+5. Verify paths that contain array indexes or a custom `rootName`.
+6. Exercise circular and non-JSON values relevant to your application.
+7. Set appropriate `maxDepth`, `maxVisibleNodes`, and search limits.
+8. Use the virtual entry for large expanded collections.
 
-Migration should take **less than 5 minutes** for most projects!
+## v1 → v2 reference
+
+v2 raised the peer requirement to React 18, renamed `expandLevel` to `defaultExpandDepth`, and renamed the copy callback's `keys` field to `path`. Apply those changes before following the v2 → v3 steps above.
+
+## Help
+
+See the [README](./README.md), [live Storybook](https://nycruslan.github.io/view-json-react/), and [issue tracker](https://github.com/nycruslan/view-json-react/issues).

@@ -1,223 +1,210 @@
+import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
 import { JsonViewer } from './JsonViewer';
+
+const sampleData = {
+  user: {
+    id: 42,
+    name: 'Ada Lovelace',
+    active: true,
+    roles: ['admin', 'reviewer'],
+    profile: {
+      location: 'London',
+      biography: 'Mathematician and writer known for work on the Analytical Engine.',
+    },
+  },
+  metrics: {
+    requests: 1_250,
+    errorRate: 0.012,
+  },
+  generatedAt: '2026-01-15T10:30:00Z',
+  metadata: null,
+};
 
 const meta = {
   title: 'Components/JsonViewer',
   component: JsonViewer,
-  parameters: {
-    layout: 'padded',
+  parameters: { layout: 'padded' },
+  args: {
+    data: sampleData,
+    theme: 'light',
   },
   argTypes: {
-    data: {
-      control: 'object',
-      description: 'The JSON data to visualize',
-    },
-    rootName: {
-      control: 'text',
-      description: 'Optional name for the root node',
-    },
-    className: {
-      control: 'text',
-      description: 'CSS class name for the viewer container',
-    },
+    data: { control: 'object', description: 'The value to inspect.' },
     theme: {
       control: 'select',
-      options: ['light', 'dark'],
-      description: 'Color theme for the JSON viewer',
+      options: ['light', 'dark', 'auto'],
+      description: 'Built-in color theme.',
     },
+    rootName: { control: 'text', description: 'Display-only root label.' },
     defaultExpandDepth: {
-      control: 'number',
-      description: 'How many levels to expand by default (0 = all collapsed)',
+      control: { type: 'number', min: 0 },
+      description: 'Initial uncontrolled expansion depth.',
     },
-    showObjectSize: {
-      control: 'boolean',
-      description: 'Show object/array item count',
+    collapseStringsAfterLength: {
+      control: { type: 'number', min: 0 },
+      description: 'Length at which strings become expandable.',
     },
+    maxVisibleNodes: {
+      control: { type: 'number', min: 1 },
+      description: 'Visible traversal safety limit.',
+    },
+    showObjectSize: { control: 'boolean' },
+    sortKeys: { control: 'boolean' },
+    copy: { control: 'boolean' },
     onCopy: {
-      description: 'Optional callback fired when a copy button is clicked. Clipboard write happens automatically regardless.',
-      action: 'copied',
+      action: 'copy result',
+      description: 'Runs after the asynchronous clipboard attempt finishes.',
     },
+    onExpand: { action: 'expansion changed' },
+    onSearchMatchCount: { action: 'search count changed' },
   },
 } satisfies Meta<typeof JsonViewer>;
 
 export default meta;
 type Story = StoryObj<typeof meta>;
 
-const sampleData = {
-  name: 'John Doe',
-  age: 30,
-  email: 'john.doe@example.com',
-  isActive: true,
-  address: {
-    street: '123 Main St',
-    city: 'New York',
-    zipCode: '10001',
-    coordinates: {
-      lat: 40.7128,
-      lng: -74.006,
-    },
-  },
-  hobbies: ['reading', 'coding', 'hiking'],
-  metadata: null,
-};
-
-const complexData = {
-  users: [
-    {
-      id: 1,
-      name: 'Alice Johnson',
-      role: 'admin',
-      permissions: ['read', 'write', 'delete'],
-      lastLogin: '2024-03-28T10:30:00Z',
-    },
-    {
-      id: 2,
-      name: 'Bob Smith',
-      role: 'user',
-      permissions: ['read'],
-      lastLogin: null,
-    },
-  ],
-  settings: {
-    notifications: {
-      email: true,
-      push: false,
-      sms: true,
-    },
-    theme: 'dark',
-    language: 'en',
-  },
-  statistics: {
-    totalUsers: 1250,
-    activeToday: 342,
-    averageSessionTime: 15.7,
-  },
-};
-
-const arrayData = [
-  { id: 1, name: 'Product A', price: 29.99, inStock: true },
-  { id: 2, name: 'Product B', price: 49.99, inStock: false },
-  { id: 3, name: 'Product C', price: 19.99, inStock: true },
-];
-
-const primitiveData = {
-  string: 'Hello, World!',
-  number: 42,
-  boolean: true,
-  null: null,
-  emptyString: '',
-  zero: 0,
-  negativeNumber: -273.15,
-  largeNumber: 1234567890,
-};
-
-export const Default: Story = {
-  args: {
-    data: sampleData,
-    theme: 'light',
-  },
-};
+export const Default: Story = {};
 
 export const DarkTheme: Story = {
-  args: {
-    data: sampleData,
-    theme: 'dark',
-  },
-  globals: {
-    backgrounds: { value: 'dark' },
-  },
-  decorators: [
-    (Story) => (
-      <div style={{ backgroundColor: '#1a1a1a', padding: '2rem' }}>
-        <Story />
-      </div>
-    ),
-  ],
+  args: { theme: 'dark', defaultExpandDepth: 2 },
+  decorators: [Story => (
+    <div style={{ minHeight: 420, padding: 24, background: '#0d1117' }}>
+      <Story />
+    </div>
+  )],
 };
 
-export const DefaultExpanded: Story = {
-  args: {
-    data: complexData,
-    defaultExpandDepth: 10,
-    theme: 'light',
-  },
+export const SystemTheme: Story = {
+  args: { theme: 'auto', defaultExpandDepth: 2 },
 };
 
-export const WithObjectSize: Story = {
+export const FullyExpanded: Story = {
+  args: { defaultExpandDepth: 10 },
+};
+
+export const SortedKeys: Story = {
   args: {
-    data: complexData,
-    showObjectSize: true,
-    theme: 'light',
+    data: { zebra: 1, alpha: 2, middle: { z: false, a: true } },
+    sortKeys: true,
+    defaultExpandDepth: 3,
   },
 };
 
-export const ArrayOfObjects: Story = {
+export const LongStrings: Story = {
   args: {
-    data: arrayData,
-    theme: 'light',
+    data: {
+      summary: 'This string is deliberately long so it can be expanded and collapsed without changing the value copied to the clipboard.',
+      short: 'Always visible',
+    },
+    collapseStringsAfterLength: 32,
   },
 };
 
-export const PrimitiveTypes: Story = {
-  args: {
-    data: primitiveData,
-    defaultExpandDepth: 10,
-    theme: 'light',
-  },
+const SearchDemo = () => {
+  const [query, setQuery] = useState('ada');
+  return (
+    <div>
+      <label style={{ display: 'grid', gap: 6, marginBlockEnd: 12 }}>
+        Search JSON
+        <input
+          value={query}
+          onChange={event => setQuery(event.target.value)}
+          style={{ maxWidth: 320, padding: 8 }}
+        />
+      </label>
+      <JsonViewer
+        data={sampleData}
+        searchQuery={query}
+        copy={{ value: true, path: true }}
+      />
+    </div>
+  );
 };
 
-export const EmptyObject: Story = {
-  args: {
-    data: {},
-    theme: 'light',
-  },
-};
-
-export const EmptyArray: Story = {
-  args: {
-    data: [],
-    theme: 'light',
-  },
-};
-
-export const WithRootName: Story = {
-  args: {
-    data: sampleData,
-    rootName: 'userData',
-    theme: 'light',
-  },
-};
-
-export const WithClassName: Story = {
-  args: {
-    data: sampleData,
-    className: 'custom-json-viewer',
-    theme: 'light',
-  },
+export const Search: Story = {
+  render: () => <SearchDemo />,
   parameters: {
     docs: {
       description: {
-        story: 'Demonstrates using the className prop for custom styling. Add your own CSS class to customize appearance.',
+        story: 'Search is controlled by the application. F3 and Shift+F3 navigate matches while the tree is focused.',
       },
     },
   },
 };
 
-export const WithCopyCallback: Story = {
-  args: {
-    data: sampleData,
-    theme: 'light',
-    onCopy: ({ path, value }) => {
-      console.log('Copied path:', path);
-      console.log('Copied value:', value);
-    },
+export const JavaScriptValues: Story = {
+  render: () => {
+    const data: Record<string, unknown> = {
+      bigint: 9_007_199_254_740_993n,
+      undefined,
+      notANumber: Number.NaN,
+      infinity: Number.POSITIVE_INFINITY,
+      negativeZero: -0,
+      date: new Date('2026-01-15T10:30:00Z'),
+      regexp: /json/giu,
+      map: new Map([['role', 'admin']]),
+      set: new Set(['read', 'write']),
+      emptySlot: [, 'present'],
+    };
+    data.self = data;
+    Object.defineProperty(data, 'token', {
+      enumerable: true,
+      get: () => 'must not execute',
+    });
+    return <JsonViewer data={data} defaultExpandDepth={3} />;
   },
   parameters: {
+    controls: { disable: true },
     docs: {
       description: {
-        story:
-          'Copy buttons are always visible. Clicking any copy button writes the value to clipboard automatically. The optional `onCopy` callback is fired as a notification with the `path` and `value` that was copied.',
+        story: 'Non-JSON values, sparse arrays, accessors, and cycles are represented explicitly without crashing.',
       },
     },
+  },
+};
+
+export const CopyAndRedaction: Story = {
+  args: {
+    data: {
+      user: 'Ada',
+      token: 'visible-but-redacted-when-copied',
+      nested: { token: 'also-redacted' },
+    },
+    copy: { value: true, path: true, indent: 2 },
+    redact: path => path.at(-1) === 'token',
+    defaultExpandDepth: 3,
+  },
+};
+
+export const CustomValueRendering: Story = {
+  args: {
+    data: { launched: new Date('2026-01-15T10:30:00Z'), status: 'ready' },
+    renderValue: ({ type, formatted }) => type === 'date'
+      ? <time style={{ fontWeight: 700 }}>{formatted}</time>
+      : undefined,
+  },
+};
+
+export const RightToLeft: Story = {
+  args: {
+    data: { مستخدم: { الاسم: 'آدا', نشط: true }, أدوار: ['مدير', 'مراجع'] },
+    rootName: 'الاستجابة',
+    dir: 'rtl',
+    defaultExpandDepth: 3,
+  },
+};
+
+export const CustomTheme: Story = {
+  args: {
+    style: {
+      '--vjr-background': '#fff8e7',
+      '--vjr-text': '#302400',
+      '--vjr-key': '#7a3e00',
+      '--vjr-string': '#146c2e',
+      '--vjr-active': '#ffe08a',
+      '--vjr-indent': '20px',
+    },
+    defaultExpandDepth: 2,
   },
 };

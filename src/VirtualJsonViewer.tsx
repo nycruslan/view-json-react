@@ -142,6 +142,7 @@ export const VirtualJsonViewer = forwardRef<
       }}
       __rowRenderer={VirtualRows}
       __rowRendererOptions={{ rowHeight, overscan } satisfies VirtualOptions}
+      __rowHeight={rowHeight}
     />
   );
 });

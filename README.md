@@ -5,218 +5,296 @@
 [![bundle size](https://img.shields.io/bundlephobia/minzip/view-json-react)](https://bundlephobia.com/package/view-json-react)
 [![license](https://img.shields.io/npm/l/view-json-react.svg)](./LICENSE)
 
-A lightweight, accessible React component for visualizing JSON data as a collapsible tree. Supports dark mode, built-in clipboard copy, CSS variable theming, and full TypeScript types.
+A small, accessible, read-only React tree for inspecting JSON and JavaScript values.
 
-**[Live Docs & Storybook](https://nycruslan.github.io/view-json-react/?path=/docs/components-jsonviewer--docs)**
+- Genuine WAI-ARIA tree navigation
+- Safe handling of cycles, accessors, sparse arrays, and non-JSON values
+- Accurate asynchronous clipboard results and optional redaction
+- Controlled or uncontrolled expansion
+- Bounded search and rendering
+- Optional dependency-free windowing for large values
+- Static, CSP-friendly CSS with light, dark, and system themes
+- ESM, CommonJS, SSR, and React Server Component boundaries
+- Zero runtime dependencies; React 18 and 19 supported
 
----
+**[Live Storybook](https://nycruslan.github.io/view-json-react/?path=/docs/components-jsonviewer--docs)**
 
-## Features
-
-- **Light & Dark theme** — built-in via `theme` prop, fully customizable with CSS variables
-- **Collapsible nodes** — expand/collapse objects and arrays interactively
-- **Clipboard copy** — every node has a copy button; writes to clipboard automatically
-- **Type-safe** — full TypeScript types exported from the package
-- **Lightweight** — ~5 KB brotli compressed, zero runtime dependencies
-- **Accessible** — keyboard navigation (Enter/Space), ARIA attributes, focus styles
-- **Mobile-friendly** — touch device support
-
----
-
-## Installation
+## Install
 
 ```bash
 npm install view-json-react
-# or
-pnpm add view-json-react
-# or
-yarn add view-json-react
+# pnpm add view-json-react
+# yarn add view-json-react
 ```
 
-**Peer dependencies:** React 18 or 19
+## Quick start
 
----
-
-## Quick Start
+The stylesheet is explicit in v3. Import it once in your application entry point.
 
 ```tsx
 import { JsonViewer } from 'view-json-react';
+import 'view-json-react/styles.css';
 
-function App() {
-  const data = { name: 'Alice', age: 30, roles: ['admin', 'user'] };
+const data = {
+  user: { name: 'Ada', roles: ['admin', 'reviewer'] },
+  active: true,
+};
 
-  return <JsonViewer data={data} />;
+export function Inspector() {
+  return <JsonViewer data={data} rootName="response" theme="auto" />;
 }
 ```
 
----
+`data` is `unknown`: valid JSON works as expected, while values such as `undefined`, `bigint`, `Date`, `RegExp`, `Map`, `Set`, functions, symbols, `NaN`, infinity, `-0`, sparse arrays, repeated references, and cycles have explicit display behavior.
 
-## Props
+## Accessibility and keyboard controls
 
-| Prop | Type | Default | Description |
-|---|---|---|---|
-| `data` | `unknown` | — | **(Required)** The value to visualize. Accepts any JSON-serializable value. |
-| `theme` | `'light' \| 'dark'` | `'light'` | Color theme. |
-| `defaultExpandDepth` | `number` | `1` | How many levels to expand on first render. `0` = all collapsed. |
-| `showObjectSize` | `boolean` | `true` | Show item count next to collapsed objects and arrays. |
-| `rootName` | `string` | — | Label shown on the root node. Hidden if not provided. |
-| `className` | `string` | — | Extra CSS class added to the root container. |
-| `style` | `CSSProperties` | — | Inline styles on the root container. Use to override CSS variables. |
-| `onCopy` | `(info: OnCopyProps) => void` | — | Optional callback fired after a copy button is clicked. Clipboard write happens automatically regardless. |
+The viewer implements the [WAI-ARIA Tree View pattern](https://www.w3.org/WAI/ARIA/apg/patterns/treeview/) with `tree`, `treeitem`, managed focus, structural metadata, and polite status announcements.
 
-### `OnCopyProps`
+| Key | Action |
+|---|---|
+| `Arrow Down` / `Arrow Up` | Move to the next or previous visible node |
+| `Arrow Right` | Expand a branch, then move to its first child |
+| `Arrow Left` | Collapse a branch, then move to its parent |
+| `Home` / `End` | Move to the first or last visible node |
+| `Page Up` / `Page Down` | Move by approximately one viewport |
+| `Enter` / `Space` | Toggle the active branch |
+| `*` | Expand sibling branches |
+| Type characters | Move by node-name type-ahead |
+| `Ctrl/Cmd+C` | Copy the active value when value copying is enabled |
+| `Ctrl/Cmd+Shift+C` | Copy the active path when path copying is enabled |
+| `F3` / `Shift+F3` | Move between current search matches |
 
-```ts
-type OnCopyProps = {
-  path: string[];   // key path to the copied node, e.g. ['users', '0', 'name']
-  value: JsonValue; // the value that was copied
-};
-```
+## Expansion
 
----
-
-## Usage Examples
-
-### Dark theme
+Uncontrolled expansion is the default:
 
 ```tsx
-<JsonViewer data={data} theme="dark" />
+<JsonViewer data={data} defaultExpandDepth={2} />
+
+// Or choose exact initially expanded branches.
+<JsonViewer data={data} defaultExpandedPaths={['', '/user']} />
 ```
 
-### Control expand depth
+Paths used for expansion are RFC 6901 JSON Pointers. For full control:
 
 ```tsx
-// All collapsed on load
-<JsonViewer data={data} defaultExpandDepth={0} />
+const [expanded, setExpanded] = useState<ReadonlySet<string>>(new Set(['']));
 
-// Expand first 3 levels
-<JsonViewer data={data} defaultExpandDepth={3} />
+<JsonViewer
+  data={data}
+  expandedPaths={expanded}
+  onExpandedPathsChange={setExpanded}
+/>
 ```
 
-### Named root node
+An imperative ref is also available:
 
 ```tsx
-<JsonViewer data={data} rootName="response" />
+const viewerRef = useRef<JsonViewerHandle>(null);
+
+viewerRef.current?.focusPath('/user/name');
+viewerRef.current?.expand('/user');
+viewerRef.current?.collapseAll();
+viewerRef.current?.nextMatch();
+
+<JsonViewer ref={viewerRef} data={data} />
 ```
 
-### Copy callback
+## Search and sorting
 
-Copy buttons are always visible and write to the clipboard automatically. Use `onCopy` to be notified:
+Search is controlled so applications can use their own input, command palette, or debouncing policy. Matching descendants are found even when their branches were collapsed; only matches and their ancestors are shown.
+
+```tsx
+const [query, setQuery] = useState('');
+
+<input
+  aria-label="Search JSON"
+  value={query}
+  onChange={event => setQuery(event.target.value)}
+/>
+<JsonViewer
+  data={data}
+  searchQuery={query}
+  maxSearchNodes={100_000}
+  maxSearchResults={1_000}
+  sortKeys
+/>
+```
+
+`sortKeys` accepts `true` for deterministic code-point ordering or a comparator such as `(a, b) => a.localeCompare(b)`.
+
+## Clipboard and redaction
+
+By default, values can be copied and paths cannot. Clipboard writes are awaited; `onCopy` runs afterward with the real result.
 
 ```tsx
 <JsonViewer
   data={data}
-  onCopy={({ path, value }) => {
-    console.log('Copied path:', path.join('.'));
-    console.log('Copied value:', value);
+  copy={{ value: true, path: true, indent: 2 }}
+  redact={(path) => path.at(-1) === 'token'}
+  onCopy={({ success, kind, path, text, error }) => {
+    if (!success) console.error('Copy failed', error);
+    else console.log(`Copied ${kind}`, path, text);
   }}
 />
 ```
 
-### TypeScript — typed data
+`redact` applies to copied values, not the visible tree. It can return `true` for `[Redacted]`, return a replacement string, or return a falsey value to retain the value. Supply `copy.stringify` for complete control of value serialization.
 
-Because `data` accepts `unknown`, any typed object works without a cast:
+The Clipboard API normally requires HTTPS or localhost and user activation. Unsupported or denied writes are reported as failures rather than as false successes.
+
+## Large values
+
+The standard viewer lazily creates descendants only for expanded branches. Safety limits prevent accidental unbounded traversal:
 
 ```tsx
-import { JsonViewer } from 'view-json-react';
-import type { JsonValue, OnCopyProps } from 'view-json-react';
-
-interface ApiResponse {
-  status: number;
-  body: Record<string, unknown>;
-}
-
-const response: ApiResponse = { status: 200, body: { ok: true } };
-
-// No cast needed
-<JsonViewer data={response} />
-
-// Typed callback
-const handleCopy = (info: OnCopyProps) => {
-  console.log(info.path, info.value);
-};
-
-<JsonViewer data={response} onCopy={handleCopy} />
+<JsonViewer
+  data={data}
+  maxDepth={50}
+  maxVisibleNodes={10_000}
+  collapseStringsAfterLength={120}
+/>
 ```
 
----
+For large expanded collections, use the optional windowed entry point. It renders only the current viewport while retaining tree keyboard behavior.
 
-## CSS Variable Theming
+```tsx
+import { VirtualJsonViewer } from 'view-json-react/virtual';
+import 'view-json-react/styles.css';
 
-Override any token via the `style` prop or a CSS class:
+<VirtualJsonViewer
+  data={largeData}
+  height={480}
+  rowHeight={28}
+  overscan={8}
+/>
+```
+
+Windowing uses dynamic inline positioning styles. The standard viewer itself does not inject styles and works with a strict CSP when its static stylesheet is allowed.
+
+## Custom values and localization
+
+```tsx
+<JsonViewer
+  data={data}
+  renderValue={({ value, type, formatted, path }) =>
+    type === 'date' ? <time>{formatted}</time> : undefined
+  }
+  labels={{
+    tree: 'API response',
+    copied: 'Value copied',
+  }}
+/>
+```
+
+Return `undefined` from `renderValue` to use the built-in rendering. All user-facing labels can be replaced through `labels`; layout uses logical CSS properties and supports `dir="rtl"`.
+
+## Themes
+
+```tsx
+<JsonViewer data={data} theme="light" />
+<JsonViewer data={data} theme="dark" />
+<JsonViewer data={data} theme="auto" />
+```
+
+Customize tokens through a class or the typed `style` prop:
 
 ```tsx
 <JsonViewer
   data={data}
   style={{
-    '--json-bg-color': '#1e1e1e',
-    '--json-string-color': '#ce9178',
-    '--json-number-color': '#b5cea8',
+    '--vjr-background': '#101418',
+    '--vjr-text': '#f0f3f6',
+    '--vjr-key': '#80bfff',
+    '--vjr-string': '#8ddb8c',
+    '--vjr-indent': '20px',
   }}
 />
 ```
 
-### Available tokens
+Main tokens include `--vjr-background`, `--vjr-text`, `--vjr-key`, `--vjr-index`, `--vjr-string`, `--vjr-number`, `--vjr-boolean`, `--vjr-null`, `--vjr-special`, `--vjr-border`, `--vjr-hover`, `--vjr-active`, `--vjr-focus`, `--vjr-match`, `--vjr-font-family`, `--vjr-font-size`, `--vjr-line-height`, and `--vjr-indent`.
 
-| Token | Description |
-|---|---|
-| `--json-font-family` | Font stack |
-| `--json-font-size` | Base font size |
-| `--json-line-height` | Line height |
-| `--json-indent` | Indentation per level |
-| `--json-text-color` | Default text color |
-| `--json-bg-color` | Background color (transparent by default) |
-| `--json-key-color` | Object key color |
-| `--json-string-color` | String value color |
-| `--json-number-color` | Number value color |
-| `--json-boolean-color` | Boolean value color |
-| `--json-null-color` | Null value color |
-| `--json-border-color` | Connector line color |
-| `--json-hover-bg` | Key hover background |
-| `--json-arrow-color` | Expand/collapse arrow color |
-| `--json-dots-color` | Collapsed `...` indicator color |
-| `--json-focus-color` | Keyboard focus outline color |
-| `--json-copy-bg` | Copy button background |
-| `--json-copy-border` | Copy button border |
-| `--json-copy-text` | Copy button icon color |
-| `--json-copy-hover-bg` | Copy button hover background |
-| `--json-copy-hover-border` | Copy button hover border |
-| `--json-copied-bg` | Copy button background after copy |
-| `--json-copied-border` | Copy button border after copy |
-| `--json-copied-text` | Copy button icon color after copy |
+The stylesheet includes reduced-motion, forced-colors, coarse-pointer, and automatic dark-mode rules.
 
----
+## Headless utilities
 
-## Exported Types
+The data model is available without React:
 
 ```ts
-import type {
-  JsonViewerProps, // component props
-  OnCopyProps,     // onCopy callback argument
-  JsonValue,       // JsonPrimitive | JsonObject | JsonArray
-} from 'view-json-react';
+import {
+  buildVisibleTree,
+  classifyValue,
+  formatJsonPath,
+  formatValue,
+  searchTree,
+  stringifyValue,
+  toJsonPointer,
+} from 'view-json-react/headless';
 ```
 
----
+Use these functions to build custom renderers or share the viewer's path, search, formatting, and safe-serialization semantics elsewhere.
 
-## Browser Support
+## Core props
 
-Works in all modern browsers that support `navigator.clipboard` (Chrome 66+, Firefox 63+, Safari 13.1+). In environments without clipboard access (non-HTTPS, old browsers), the copy button is still rendered but the write is a no-op.
+| Prop | Type | Default |
+|---|---|---|
+| `data` | `unknown` | required |
+| `rootName` | `string` | hidden; accessible name is `"root"` |
+| `theme` | `'light' \| 'dark' \| 'auto'` | `'light'` |
+| `defaultExpandDepth` | `number` | `1` |
+| `defaultExpandedPaths` | `Iterable<string>` | derived from depth |
+| `expandedPaths` | `ReadonlySet<string>` | uncontrolled |
+| `onExpandedPathsChange` | `(paths, change) => void` | — |
+| `onExpand` | `(change) => void` | — |
+| `showObjectSize` | `boolean` | `true` |
+| `copy` | `boolean \| CopyOptions` | `true` |
+| `onCopy` | `(result: CopyResult) => void` | — |
+| `redact` | `(path, value) => boolean \| string \| null \| undefined` | — |
+| `searchQuery` | `string` | `''` |
+| `onSearchMatchCount` | `(count) => void` | — |
+| `sortKeys` | `boolean \| KeyComparator` | `false` |
+| `collapseStringsAfterLength` | `number` | `120` |
+| `maxDepth` | `number` | `100` |
+| `maxVisibleNodes` | `number` | `10_000` |
+| `maxSearchNodes` | `number` | `100_000` |
+| `maxSearchResults` | `number` | `1_000` |
+| `renderValue` | `(context) => ReactNode` | — |
+| `labels` | `Partial<JsonViewerLabels>` | English labels |
 
----
+Standard `div` attributes such as `className`, `style`, `dir`, `aria-label`, and event handlers are forwarded to the tree.
 
-## Contributing
+## Security and resilience
 
-Contributions are welcome. Please read [CONTRIBUTING.md](./CONTRIBUTING.md) before opening a pull request.
+- Values are rendered as React text; the package does not use `dangerouslySetInnerHTML`.
+- Enumerable getters and setters are described without invocation.
+- Cycles are represented as references instead of recursing forever.
+- Traversal, search, serialization depth, and breadth are bounded.
+- Revoked or throwing proxies are represented as unavailable where possible. Proxy reflection traps can execute by JavaScript design, so do not treat arbitrary executable proxy objects as inert data.
+- Copy redaction happens before serialization.
+- The package has no runtime dependencies and publishes static CSS instead of injecting a `<style>` element.
+- A custom `renderValue` is application code and remains responsible for its own output safety.
 
-## Code of Conduct
+## SSR and frameworks
 
-This project follows the [Contributor Covenant](./CODE_OF_CONDUCT.md). Please be respectful in all interactions.
+Both UI entries carry a `"use client"` boundary and can be server-rendered without accessing `window`, `document`, or `navigator` during render. Import the stylesheet through your framework's supported global-CSS entry point. The headless entry has no React dependency.
 
-## Changelog
+## Package entries and size budgets
 
-See [CHANGELOG.md](./CHANGELOG.md) for a full history of changes.
+| Entry | Purpose | Current budget |
+|---|---|---|
+| `view-json-react` | Standard viewer | 6.5 KB Brotli |
+| `view-json-react/virtual` | Windowed viewer | 7 KB Brotli |
+| `view-json-react/headless` | Data utilities | 3 KB Brotli |
+| `view-json-react/styles.css` | Static styles | 2 KB Brotli |
 
-## License
+Packed ESM, CommonJS, TypeScript, SSR, CSS, and subpath exports are tested in CI.
 
-MIT — see [LICENSE](./LICENSE).
+## Migration, contributing, and license
+
+- [Migrate from v2](./MIGRATION.md)
+- [Contributing](./CONTRIBUTING.md)
+- [Changelog](./CHANGELOG.md)
+- [Code of Conduct](./CODE_OF_CONDUCT.md)
+
+MIT © Ruslan Shulga.

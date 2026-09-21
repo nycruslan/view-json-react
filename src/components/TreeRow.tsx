@@ -16,17 +16,6 @@ interface CopyButtonProps {
   onCopy: (kind: 'value' | 'path') => void;
 }
 
-const CopyIcon = ({ copied }: { copied: boolean }) => copied ? (
-  <svg viewBox="0 0 16 16" aria-hidden="true">
-    <path d="m3 8 3 3 7-7" />
-  </svg>
-) : (
-  <svg viewBox="0 0 16 16" aria-hidden="true">
-    <rect x="5" y="5" width="8" height="8" rx="1" />
-    <path d="M3 11H2V3a1 1 0 0 1 1-1h8v1" />
-  </svg>
-);
-
 const CopyButton = ({
   kind,
   label,
@@ -47,7 +36,7 @@ const CopyButton = ({
       onCopy(kind);
     }}
   >
-    {kind === 'value' ? <CopyIcon copied={copied} /> : <span aria-hidden="true">#</span>}
+    <span aria-hidden="true">{kind === 'path' ? '#' : copied ? '✓' : '⧉'}</span>
   </button>
 );
 
@@ -140,7 +129,7 @@ export const TreeRow = ({
   const truncatedString = stringCanCollapse && !stringExpanded
     ? `${JSON.stringify((row.value as string).slice(0, stringLimit))}…`
     : formatted;
-  const customValue = renderValue?.({
+  const customValue = row.expandable ? undefined : renderValue?.({
     value: row.value,
     formatted,
     type: row.type,

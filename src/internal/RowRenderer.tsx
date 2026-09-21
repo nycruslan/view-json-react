@@ -21,6 +21,8 @@ export interface InternalRendererProps {
   __rowRenderer?: ComponentType<RowRendererProps>;
   /** @internal */
   __rowRendererOptions?: unknown;
+  /** @internal */
+  __rowHeight?: number;
 }
 
 export const StandardRowRenderer = ({ rows, renderRow }: RowRendererProps) => (

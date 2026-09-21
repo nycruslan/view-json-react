@@ -2,7 +2,7 @@
   "name": "view-json-react",
   "version": "3.0.0-next.0",
   "packageManager": "pnpm@12.5.1",
-  "description": "A lightweight, performant React component for visualizing JSON data with collapsible nodes, dark mode, and copy functionality",
+  "description": "A lightweight, accessible React tree for safely inspecting JSON and JavaScript values",
   "type": "module",
   "main": "./dist/view-json-react.cjs",
   "module": "./dist/view-json-react.esm.js",
@@ -47,6 +47,7 @@
   "files": [
     "dist",
     "README.md",
+    "MIGRATION.md",
     "CHANGELOG.md",
     "CONTRIBUTING.md",
     "CODE_OF_CONDUCT.md",
@@ -62,7 +63,7 @@
   "scripts": {
     "build": "node scripts/build.mjs && pnpm run size",
     "build-storybook": "storybook build",
-    "benchmark": "pnpm run build && node scripts/benchmark.mjs",
+    "benchmark": "pnpm run build && node --expose-gc scripts/benchmark.mjs",
     "check": "pnpm run lint && pnpm run typecheck && pnpm run test:run && pnpm run build",
     "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
     "lint": "eslint .",
@@ -121,8 +122,11 @@
     "expandable json",
     "json tree view",
     "json explorer",
-    "json parser",
+    "json inspector",
     "interactive json",
+    "accessible",
+    "aria tree",
+    "virtualized",
     "development tool",
     "web development",
     "frontend",
@@ -134,19 +138,19 @@
   "size-limit": [
     {
       "path": "dist/view-json-react.esm.js",
-      "limit": "8 KB"
+      "limit": "6.5 KB"
     },
     {
       "path": "dist/virtual.js",
-      "limit": "10 KB"
+      "limit": "7 KB"
     },
     {
       "path": "dist/headless.js",
-      "limit": "5 KB"
+      "limit": "3 KB"
     },
     {
       "path": "dist/styles.css",
-      "limit": "2.5 KB"
+      "limit": "2 KB"
     }
   ]
 }

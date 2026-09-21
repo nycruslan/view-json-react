@@ -46,3 +46,32 @@ jobs:
 
       - name: Build Storybook
         run: pnpm build-storybook
+
+  react-18:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@f520eceda224fe1a4aed5a2a27a194379a409996 # v6
+
+      - name: Setup Node.js
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
+        with:
+          node-version: '24'
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Replace test runtime with React 18
+        run: pnpm add --save-dev --save-exact --lockfile=false react@18.3.1 react-dom@18.3.1
+
+      - name: Test React 18
+        run: |
+          pnpm test:run
+          pnpm build

@@ -1,162 +1,115 @@
-import { Meta, Canvas, Controls, Story } from '@storybook/addon-docs/blocks';
+import { Meta, Canvas, Controls } from '@storybook/addon-docs/blocks';
 import * as JsonViewerStories from './JsonViewer.stories';
+import * as VirtualStories from './VirtualJsonViewer.stories';
 
 <Meta of={JsonViewerStories} />
 
 # JsonViewer
 
-A lightweight, performant React component for rendering JSON data with collapsible nodes, theme support, and copy-to-clipboard functionality.
-
-## Features
-
-- 🎨 **Light & Dark Theme** - Built-in theme support with CSS variables
-- 📦 **Collapsible Nodes** - Interactive expand/collapse for objects and arrays
-- 📋 **Copy to Clipboard** - Easily copy JSON values with visual feedback
-- 🎯 **Type-Safe** - Written in TypeScript with full type definitions
-- ⚡ **Lightweight** - ~5KB (brotli compressed)
-- ♿ **Accessible** - Keyboard navigation and ARIA labels
-- 🎨 **Customizable** - CSS variables and className for easy theming
-- 📱 **Mobile-Friendly** - Touch device support with accessible controls
-- 🔧 **Flexible API** - Root naming, expand depth control, copy callbacks
-- 🌳 **Tree-Shakeable** - ESM build with proper side-effects declaration
-
-## Installation
-
-```bash
-npm install view-json-react
-```
-
-```bash
-pnpm add view-json-react
-```
-
-```bash
-yarn add view-json-react
-```
-
-## Basic Usage
+A lightweight, read-only tree for safely inspecting JSON and JavaScript values. The v3 viewer combines a bounded iterative data model, WAI-ARIA tree interaction, accurate clipboard results, static CSS, and optional dependency-free windowing.
 
 ```tsx
 import { JsonViewer } from 'view-json-react';
+import 'view-json-react/styles.css';
 
-const data = {
-  name: 'John Doe',
-  age: 30,
-  email: 'john.doe@example.com',
-};
-
-function App() {
-  return <JsonViewer data={data} />;
-}
+<JsonViewer data={{ ok: true }} theme="auto" />
 ```
 
-## Examples
+## Default
 
-### Default (Light Theme)
+Click the tree and use the arrow keys, Home, End, Enter, Space, and type-ahead.
 
 <Canvas of={JsonViewerStories.Default} />
 
-### Dark Theme
+## Themes
 
-Perfect for dark mode applications. Set `theme="dark"` to enable dark mode styling.
+The stylesheet provides light, dark, and operating-system-aware themes. It also includes forced-colors and reduced-motion behavior.
 
 <Canvas of={JsonViewerStories.DarkTheme} />
 
-### Default Expanded
+<Canvas of={JsonViewerStories.SystemTheme} />
 
-Use `defaultExpandDepth={10}` to show all nested objects and arrays expanded by default.
+<Canvas of={JsonViewerStories.CustomTheme} />
 
-<Canvas of={JsonViewerStories.DefaultExpanded} />
+## Expansion and ordering
 
-### Show Object Size
+`defaultExpandDepth` configures initial uncontrolled state. Applications can instead pass `expandedPaths` and `onExpandedPathsChange`, or use the component ref. `sortKeys` provides deterministic object-key ordering.
 
-Enable `showObjectSize={true}` to display the number of items in objects and arrays.
+<Canvas of={JsonViewerStories.FullyExpanded} />
 
-<Canvas of={JsonViewerStories.WithObjectSize} />
+<Canvas of={JsonViewerStories.SortedKeys} />
 
-### Array of Objects
+## Search
 
-Arrays are displayed with numeric indices and support all the same features as objects.
+Search is controlled by the host application. Matching collapsed descendants are discovered within configured limits, their ancestors are revealed, and F3 / Shift+F3 navigates matches.
 
-<Canvas of={JsonViewerStories.ArrayOfObjects} />
+<Canvas of={JsonViewerStories.Search} />
 
-### Primitive Types
+## Safe value inspection
 
-The component handles all JSON primitive types: strings, numbers, booleans, and null.
+The viewer distinguishes non-JSON values rather than rendering blanks or misleading empty objects. Enumerable accessors are described without being invoked, and cycles become references.
 
-<Canvas of={JsonViewerStories.PrimitiveTypes} />
+<Canvas of={JsonViewerStories.JavaScriptValues} />
 
-### With Root Name
+## Clipboard and redaction
 
-Assign a custom name to the root node for better context.
+Clipboard writes are awaited. The `onCopy` callback receives `success`, `error`, `text`, `kind`, the typed path, and the original value. Redaction is applied before copied values are serialized.
 
-<Canvas of={JsonViewerStories.WithRootName} />
+<Canvas of={JsonViewerStories.CopyAndRedaction} />
 
-### Custom CSS Class
+## Long and custom values
 
-Use the `className` prop to apply your own CSS classes for custom styling.
+Long strings expand in place while copying retains the complete original. `renderValue` can replace leaf output without replacing tree semantics.
 
-<Canvas of={JsonViewerStories.WithClassName} />
+<Canvas of={JsonViewerStories.LongStrings} />
+
+<Canvas of={JsonViewerStories.CustomValueRendering} />
+
+## Internationalization
+
+All UI labels can be replaced. Logical CSS properties and forwarded `dir` support right-to-left layouts.
+
+<Canvas of={JsonViewerStories.RightToLeft} />
+
+## Windowed rendering
+
+Import `VirtualJsonViewer` from `view-json-react/virtual` for large expanded collections. It retains the same public behavior while mounting only an overscanned viewport.
+
+```tsx
+import { VirtualJsonViewer } from 'view-json-react/virtual';
+import 'view-json-react/styles.css';
+
+<VirtualJsonViewer data={largeData} height={480} />
+```
+
+<Canvas of={VirtualStories.FiftyThousandItems} />
+
+## Accessibility
+
+The component follows the WAI-ARIA Tree View pattern:
+
+- `tree`, `treeitem`, and structural ARIA metadata
+- managed focus with `aria-activedescendant`
+- arrow, Home, End, Page Up, Page Down, Enter, Space, `*`, and type-ahead controls
+- accessible copy actions and polite success/failure announcements
+- visible focus, coarse-pointer controls, reduced motion, and forced colors
+
+Automated axe checks supplement keyboard and behavior tests; they do not replace manual assistive-technology testing.
+
+## Security and resilience
+
+- No `dangerouslySetInnerHTML`
+- No runtime stylesheet injection
+- Bounded depth, breadth, visible rows, and search
+- Getter-safe property inspection
+- Cycle detection and guarded proxy reflection
+- Copy-time redaction and safe serialization
+- Zero runtime dependencies
+
+The standard viewer is compatible with strict CSP when the static stylesheet is allowed. The virtual entry uses dynamic inline positioning styles.
 
 ## Props
 
 <Controls />
 
-## Theming
-
-You can customize the appearance using CSS variables:
-
-```css
-.json-viewer {
-  --json-bg: #ffffff;
-  --json-text: #24292f;
-  --json-key: #0969da;
-  --json-string: #0a3069;
-  --json-number: #0550ae;
-  --json-boolean: #8250df;
-  --json-null: #57606a;
-  --json-bracket: #6e7781;
-  --json-hover-bg: #f6f8fa;
-  --json-border: #d0d7de;
-}
-```
-
-## TypeScript
-
-The component is fully typed and exports all necessary TypeScript definitions:
-
-```tsx
-import type { JsonValue, JsonViewerProps } from 'view-json-react';
-
-const data: JsonValue = {
-  foo: 'bar',
-  nested: { count: 42 },
-};
-
-const MyComponent = () => <JsonViewer data={data} theme="dark" />;
-```
-
-## Performance
-
-- **Bundle Size**: ~4.8KB (brotli), ~10KB (gzip)
-- **Zero Dependencies**: No runtime dependencies (React is a peer dependency)
-- **Tree-Shakeable**: ESM build with proper side-effects declaration
-- **Optimized Rendering**: Efficient re-renders with proper memoization
-
-## Accessibility
-
-- Keyboard navigation for collapsible nodes (Space/Enter to toggle)
-- Proper ARIA labels for screen readers
-- Semantic HTML structure
-- Focus indicators for interactive elements
-
-## Browser Support
-
-Works in all modern browsers that support:
-- CSS custom properties (CSS variables)
-- ES2015+ JavaScript
-- React 18+
-
-## License
-
-MIT
+See the package README for every prop, headless utilities, controlled-state examples, CSS tokens, SSR guidance, and the v2 migration guide.

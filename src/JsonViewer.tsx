@@ -110,6 +110,7 @@ const JsonViewerImplementation = forwardRef<
       onKeyDown,
       __rowRenderer: RowRenderer = StandardRowRenderer,
       __rowRendererOptions,
+      __rowHeight = 28,
       ...htmlProps
     },
     ref,
@@ -152,8 +153,14 @@ const JsonViewerImplementation = forwardRef<
       const matchingRows = searchResult.rows.filter(row =>
         searchResult.visible.has(row.pointer),
       );
+      const limitedRows = matchingRows.slice(0, visibleNodeLimit);
+      const visibleParents = new Set(
+        limitedRows.map(row => row.parentPointer).filter(pointer => pointer !== undefined),
+      );
       return {
-        rows: matchingRows.slice(0, visibleNodeLimit),
+        rows: limitedRows.map(row => row.expandable
+          ? { ...row, expanded: visibleParents.has(row.pointer) }
+          : row),
         truncated: searchResult.truncated || matchingRows.length > visibleNodeLimit,
       };
     }, [normalTree, normalizedSearchQuery, searchResult, visibleNodeLimit]);
@@ -186,7 +193,10 @@ const JsonViewerImplementation = forwardRef<
 
     useEffect(() => {
       if (!copyState || copyState.status === 'pending') return;
-      const timer = setTimeout(() => setCopyState(undefined), 1_500);
+      const timer = setTimeout(() => {
+        setCopyState(undefined);
+        setStatusMessage('');
+      }, 1_500);
       return () => clearTimeout(timer);
     }, [copyState]);
 
@@ -392,13 +402,13 @@ const JsonViewerImplementation = forwardRef<
         case 'PageDown':
           moveTo(currentIndex + Math.max(
             1,
-            Math.floor((treeRef.current?.clientHeight || 400) / 28),
+            Math.floor((treeRef.current?.clientHeight || 400) / __rowHeight),
           ));
           break;
         case 'PageUp':
           moveTo(currentIndex - Math.max(
             1,
-            Math.floor((treeRef.current?.clientHeight || 400) / 28),
+            Math.floor((treeRef.current?.clientHeight || 400) / __rowHeight),
           ));
           break;
         case 'ArrowRight':

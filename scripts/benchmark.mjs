@@ -2,10 +2,8 @@ import { performance } from 'node:perf_hooks';
 import process from 'node:process';
 import React from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
-import {
-  JsonViewer,
-  VirtualJsonViewer,
-} from '../dist/view-json-react.esm.js';
+import { JsonViewer } from '../dist/view-json-react.esm.js';
+import { VirtualJsonViewer } from '../dist/virtual.js';
 
 const sizes = [1_000, 10_000, 50_000];
 
@@ -15,6 +13,7 @@ for (const size of sizes) {
     ['standard', JsonViewer],
     ['virtual', VirtualJsonViewer],
   ]) {
+    globalThis.gc?.();
     const heapBefore = process.memoryUsage().heapUsed;
     const start = performance.now();
     const html = renderToStaticMarkup(

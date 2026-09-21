@@ -16,6 +16,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Focused `view-json-react/headless`, `view-json-react/virtual`, and `view-json-react/styles.css` package exports.
 - A reproducible server-render benchmark for standard and windowed large-data rendering.
 - Packed-tarball tests for ESM, CommonJS, TypeScript, SSR, CSS, and all public subpaths.
+- A complete v3 migration guide, API reference, keyboard guide, security notes, and large-data Storybook examples.
 - Pull-request quality gates for linting, type checking, tests, builds, dependency audits, and Storybook.
 
 ### Changed
