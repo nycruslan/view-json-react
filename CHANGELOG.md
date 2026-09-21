@@ -8,6 +8,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ---
 
+## [2.1.3] - 2026-08-20
+
+### Changed
+- Pinned the package manager and moved pnpm security policy settings into `pnpm-workspace.yaml`.
+- Updated the lockfile after dependency-policy verification.
+
+---
+
 ## [2.1.2] - 2026-08-19
 
 ### Security
@@ -101,7 +109,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Light theme
 - TypeScript support
 
-[Unreleased]: https://github.com/nycruslan/view-json-react/compare/v2.1.2...HEAD
+[Unreleased]: https://github.com/nycruslan/view-json-react/compare/v2.1.3...HEAD
+[2.1.3]: https://github.com/nycruslan/view-json-react/compare/v2.1.2...v2.1.3
 [2.1.2]: https://github.com/nycruslan/view-json-react/compare/v2.1.1...v2.1.2
 [2.1.1]: https://github.com/nycruslan/view-json-react/compare/v2.1.0...v2.1.1
 [2.1.0]: https://github.com/nycruslan/view-json-react/compare/v2.0.0...v2.1.0

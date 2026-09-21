@@ -11,7 +11,7 @@ Thank you for your interest in contributing to `view-json-react`!
 
 ## Development Setup
 
-**Requirements:** Node.js 18+, pnpm 8+
+**Requirements:** Node.js 24 and the pnpm version pinned in `package.json`
 
 ```bash
 git clone https://github.com/nycruslan/view-json-react.git
@@ -24,14 +24,18 @@ pnpm install
 | Command | Description |
 |---|---|
 | `pnpm run storybook` | Start Storybook dev server on port 6006 |
-| `pnpm run build` | Build the production library |
-| `pnpm run lint` | Run ESLint and auto-fix |
+| `pnpm run test:run` | Run the test suite once |
+| `pnpm run typecheck` | Check TypeScript types |
+| `pnpm run lint` | Check source and test lint rules |
+| `pnpm run lint:fix` | Apply safe ESLint fixes |
+| `pnpm run build` | Build and size-check the package |
+| `pnpm run check` | Run all required local checks |
 
 ## Pull Request Guidelines
 
 1. **Fork** the repository and create a branch from `main`.
 2. Keep changes focused — one feature or fix per PR.
-3. Make sure `pnpm run build` and `pnpm run lint` both pass before opening a PR.
+3. Make sure `pnpm run check` passes before submitting a change.
 4. Update or add a Storybook story if your change affects the component API or visual output.
 5. Update `CHANGELOG.md` under the `[Unreleased]` section describing your change.
 6. Open the PR against `main` with a clear title and description.

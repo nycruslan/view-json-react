@@ -4,6 +4,10 @@
 # The packageManager pin in package.json keeps everyone on pnpm 12.
 minimumReleaseAge: 1440
 
+# Keep the patched 3.x release required by API Extractor's dependency range.
+overrides:
+  fast-uri: 3.1.6
+
 # Build-script approval (pnpm 11 syntax). esbuild needs its postinstall to
 # place the platform binary; @parcel/watcher works from prebuilt binaries,
 # so its scripts stay denied, matching the previous pnpm 10 behavior.
