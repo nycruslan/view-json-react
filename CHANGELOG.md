@@ -12,12 +12,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Safe rendering for non-JSON JavaScript values, throwing accessors, proxies, repeated references, and cycles.
 - Light, dark, and system themes with RTL, reduced-motion, forced-colors, and WCAG AA-oriented tokens.
 - Bounded full-tree search with match navigation, deterministic key sorting, and expandable long strings.
-- Dependency-free windowed rendering through `VirtualJsonViewer`, including Page Up/Page Down navigation.
+- Dependency-free windowed rendering through `view-json-react/virtual`, including Page Up/Page Down navigation.
+- Focused `view-json-react/headless`, `view-json-react/virtual`, and `view-json-react/styles.css` package exports.
 - A reproducible server-render benchmark for standard and windowed large-data rendering.
+- Packed-tarball tests for ESM, CommonJS, TypeScript, SSR, CSS, and all public subpaths.
 - Pull-request quality gates for linting, type checking, tests, builds, dependency audits, and Storybook.
 
 ### Changed
 - Began the v3 prerelease line as `3.0.0-next.0`.
+- Styles are now a static opt-in stylesheet instead of runtime injection, improving CSP and SSR compatibility.
+- Declaration generation now uses TypeScript directly, removing the API Extractor dependency chain.
 - Copy operations now report actual asynchronous success or failure and support path copying and redaction.
 - JSON paths now use numeric array segments and keep `rootName` display-only.
 - Replaced mutating lint defaults and install-time builds with explicit check and prepack commands.

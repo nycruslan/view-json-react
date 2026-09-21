@@ -128,13 +128,13 @@ export interface JsonViewerProps
   maxSearchResults?: number;
   maxSearchNodes?: number;
   onSearchMatchCount?: (count: number) => void;
-  virtualize?: boolean;
-  height?: number | string;
-  rowHeight?: number;
-  overscan?: number;
   labels?: Partial<JsonViewerLabels>;
   renderValue?: (context: ValueRenderContext) => ReactNode;
   onKeyDown?: (event: KeyboardEvent<HTMLDivElement>) => void;
 }
 
-export type VirtualJsonViewerProps = Omit<JsonViewerProps, 'virtualize'>;
+export interface VirtualJsonViewerProps extends JsonViewerProps {
+  height?: number | string;
+  rowHeight?: number;
+  overscan?: number;
+}

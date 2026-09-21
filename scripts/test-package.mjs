@@ -1,0 +1,141 @@
+import {
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  renameSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from 'node:fs';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
+import process from 'node:process';
+
+const root = path.resolve(import.meta.dirname, '..');
+const temporaryDirectory = mkdtempSync(path.join(root, '.package-test-'));
+
+const run = (command, args, options = {}) => {
+  const result = spawnSync(command, args, {
+    cwd: temporaryDirectory,
+    encoding: 'utf8',
+    ...options,
+  });
+  if (result.status !== 0) {
+    process.stderr.write(result.stdout ?? '');
+    process.stderr.write(result.stderr ?? '');
+    throw new Error(`${command} ${args.join(' ')} failed`);
+  }
+  return result.stdout;
+};
+
+try {
+  const packOutput = run('npm', [
+    'pack',
+    root,
+    '--json',
+    '--ignore-scripts',
+    '--pack-destination',
+    temporaryDirectory,
+  ]);
+  const parsedPackOutput = JSON.parse(packOutput);
+  const packResult = Array.isArray(parsedPackOutput)
+    ? parsedPackOutput[0]
+    : Object.values(parsedPackOutput)[0];
+  const { filename } = packResult;
+  run('tar', ['-xzf', path.join(temporaryDirectory, filename), '-C', temporaryDirectory]);
+
+  const nodeModules = path.join(temporaryDirectory, 'node_modules');
+  mkdirSync(nodeModules);
+  renameSync(
+    path.join(temporaryDirectory, 'package'),
+    path.join(nodeModules, 'view-json-react'),
+  );
+  for (const dependency of ['react', 'react-dom']) {
+    symlinkSync(
+      path.join(root, 'node_modules', dependency),
+      path.join(nodeModules, dependency),
+      'junction',
+    );
+  }
+
+  writeFileSync(
+    path.join(temporaryDirectory, 'package.json'),
+    JSON.stringify({ private: true, type: 'module' }),
+  );
+  writeFileSync(
+    path.join(temporaryDirectory, 'consumer.mjs'),
+    `import React from 'react';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { JsonViewer } from 'view-json-react';
+import { VirtualJsonViewer } from 'view-json-react/virtual';
+import { buildVisibleTree } from 'view-json-react/headless';
+if (!import.meta.resolve('view-json-react/styles.css').endsWith('/dist/styles.css')) throw new Error('CSS export failed');
+if (buildVisibleTree({ ok: true }, { isExpanded: () => true }).rows.length !== 2) throw new Error('Headless export failed');
+for (const Component of [JsonViewer, VirtualJsonViewer]) {
+  const html = renderToStaticMarkup(React.createElement(Component, { data: { ok: true } }));
+  if (!html.includes('role="tree"')) throw new Error('SSR failed');
+}
+`,
+  );
+  writeFileSync(
+    path.join(temporaryDirectory, 'consumer.cjs'),
+    `const React = require('react');
+const { renderToStaticMarkup } = require('react-dom/server');
+const { JsonViewer } = require('view-json-react');
+const { VirtualJsonViewer } = require('view-json-react/virtual');
+const { toJsonPointer } = require('view-json-react/headless');
+if (toJsonPointer(['ok']) !== '/ok') throw new Error('CommonJS headless export failed');
+for (const Component of [JsonViewer, VirtualJsonViewer]) {
+  if (!renderToStaticMarkup(React.createElement(Component, { data: null })).includes('role="tree"')) throw new Error('CommonJS SSR failed');
+}
+`,
+  );
+  writeFileSync(
+    path.join(temporaryDirectory, 'consumer.ts'),
+    `import { JsonViewer, type JsonViewerProps } from 'view-json-react';
+import { VirtualJsonViewer, type VirtualJsonViewerProps } from 'view-json-react/virtual';
+import { searchTree, type JsonPath } from 'view-json-react/headless';
+import 'view-json-react/styles.css';
+const path: JsonPath = ['items', 0];
+const props: JsonViewerProps = { data: { ok: true }, searchQuery: 'ok' };
+const virtualProps: VirtualJsonViewerProps = { ...props, height: 300 };
+void [JsonViewer, VirtualJsonViewer, searchTree(props.data, 'ok'), path, virtualProps];
+`,
+  );
+
+  run(process.execPath, ['consumer.mjs']);
+  run(process.execPath, ['consumer.cjs']);
+  run(process.execPath, [
+    path.join(root, 'node_modules/typescript/bin/tsc'),
+    '--noEmit',
+    '--strict',
+    '--skipLibCheck',
+    '--target',
+    'ES2020',
+    '--module',
+    'NodeNext',
+    '--moduleResolution',
+    'NodeNext',
+    'consumer.ts',
+  ]);
+
+  const packedRoot = path.join(nodeModules, 'view-json-react', 'dist');
+  for (const file of [
+    'view-json-react.esm.js',
+    'view-json-react.cjs',
+    'virtual.js',
+    'virtual.cjs',
+  ]) {
+    const content = readFileSync(path.join(packedRoot, file), 'utf8');
+    if (!content.startsWith('"use client";')) {
+      throw new Error(`${file} is missing its client boundary`);
+    }
+    if (content.includes('createElement("style")')) {
+      throw new Error(`${file} injects styles at runtime`);
+    }
+  }
+
+  console.log('Packed ESM, CommonJS, types, SSR, CSS, and subpath exports passed.');
+} finally {
+  rmSync(temporaryDirectory, { recursive: true, force: true });
+}

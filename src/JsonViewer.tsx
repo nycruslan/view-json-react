@@ -10,7 +10,11 @@ import {
   useRef,
   useState,
 } from 'react';
-import type { KeyboardEvent, UIEvent } from 'react';
+import type {
+  ForwardRefExoticComponent,
+  KeyboardEvent,
+  RefAttributes,
+} from 'react';
 import {
   buildVisibleTree,
   collectDefaultExpandedPaths,
@@ -23,6 +27,10 @@ import {
 } from './core/path';
 import { stringifyValue } from './core/value';
 import { TreeRow } from './components/TreeRow';
+import {
+  StandardRowRenderer,
+} from './internal/RowRenderer';
+import type { InternalRendererProps } from './internal/RowRenderer';
 import type {
   CopyOptions,
   CopyResult,
@@ -33,7 +41,6 @@ import type {
   JsonViewerProps,
   TreeRow as TreeRowData,
 } from './types';
-import './styles.css';
 
 const DEFAULT_LABELS: JsonViewerLabels = {
   tree: 'JSON data',
@@ -70,7 +77,10 @@ const pointerToId = (prefix: string, pointer: string): string =>
 const getRowName = (row: TreeRowData, rootName?: string): string =>
   row.depth === 0 ? rootName ?? 'root' : String(row.key);
 
-export const JsonViewer = forwardRef<JsonViewerHandle, JsonViewerProps>(
+const JsonViewerImplementation = forwardRef<
+  JsonViewerHandle,
+  JsonViewerProps & InternalRendererProps
+>(
   function JsonViewer(
     {
       data,
@@ -95,14 +105,11 @@ export const JsonViewer = forwardRef<JsonViewerHandle, JsonViewerProps>(
       maxSearchResults = 1_000,
       maxSearchNodes = 100_000,
       onSearchMatchCount,
-      virtualize = false,
-      height = 400,
-      rowHeight = 28,
-      overscan = 6,
       labels: labelOverrides,
       renderValue,
       onKeyDown,
-      onScroll,
+      __rowRenderer: RowRenderer = StandardRowRenderer,
+      __rowRendererOptions,
       ...htmlProps
     },
     ref,
@@ -160,10 +167,6 @@ export const JsonViewer = forwardRef<JsonViewerHandle, JsonViewerProps>(
     const [expandedStrings, setExpandedStrings] = useState<Set<string>>(
       () => new Set(),
     );
-    const [scrollTop, setScrollTop] = useState(0);
-    const [viewportHeight, setViewportHeight] = useState(
-      typeof height === 'number' ? height : 400,
-    );
     const treeRef = useRef<HTMLDivElement>(null);
     const typeahead = useRef('');
     const typeaheadTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -173,48 +176,6 @@ export const JsonViewer = forwardRef<JsonViewerHandle, JsonViewerProps>(
       () => new Map(tree.rows.map(row => [row.pointer, row])),
       [tree.rows],
     );
-    const effectiveRowHeight = Number.isFinite(rowHeight)
-      ? Math.max(28, Math.floor(rowHeight))
-      : 28;
-    const effectiveOverscan = Number.isFinite(overscan)
-      ? Math.max(0, Math.floor(overscan))
-      : 6;
-    const activeIndex = Math.max(
-      0,
-      tree.rows.findIndex(row => row.pointer === activePointer),
-    );
-    const virtualRange = useMemo(() => {
-      if (!virtualize) return { start: 0, end: tree.rows.length };
-      const visibleCount = Math.max(1, Math.ceil(viewportHeight / effectiveRowHeight));
-      let start = Math.max(
-        0,
-        Math.floor(scrollTop / effectiveRowHeight) - effectiveOverscan,
-      );
-      let end = Math.min(
-        tree.rows.length,
-        start + visibleCount + effectiveOverscan * 2,
-      );
-      if (activeIndex < start || activeIndex >= end) {
-        start = Math.max(0, activeIndex - effectiveOverscan);
-        end = Math.min(
-          tree.rows.length,
-          start + visibleCount + effectiveOverscan * 2,
-        );
-      }
-      return { start, end };
-    }, [
-      activeIndex,
-      effectiveOverscan,
-      effectiveRowHeight,
-      scrollTop,
-      tree.rows.length,
-      viewportHeight,
-      virtualize,
-    ]);
-    const renderedRows = virtualize
-      ? tree.rows.slice(virtualRange.start, virtualRange.end)
-      : tree.rows;
-
     useEffect(() => {
       if (!rowByPointer.has(activePointer)) setActivePointer('');
     }, [activePointer, rowByPointer]);
@@ -222,28 +183,6 @@ export const JsonViewer = forwardRef<JsonViewerHandle, JsonViewerProps>(
     useEffect(() => {
       onSearchMatchCount?.(searchResult.matches.size);
     }, [onSearchMatchCount, searchResult.matches.size]);
-
-    useEffect(() => {
-      if (!virtualize || !treeRef.current) return;
-      const element = treeRef.current;
-      const updateHeight = () => setViewportHeight(element.clientHeight || 400);
-      updateHeight();
-      if (typeof ResizeObserver === 'undefined') return;
-      const observer = new ResizeObserver(updateHeight);
-      observer.observe(element);
-      return () => observer.disconnect();
-    }, [virtualize]);
-
-    useEffect(() => {
-      if (!virtualize || !treeRef.current) return;
-      const element = treeRef.current;
-      const top = activeIndex * effectiveRowHeight;
-      const bottom = top + effectiveRowHeight;
-      if (top < element.scrollTop) element.scrollTop = top;
-      else if (bottom > element.scrollTop + element.clientHeight) {
-        element.scrollTop = bottom - element.clientHeight;
-      }
-    }, [activeIndex, effectiveRowHeight, virtualize]);
 
     useEffect(() => {
       if (!copyState || copyState.status === 'pending') return;
@@ -451,10 +390,16 @@ export const JsonViewer = forwardRef<JsonViewerHandle, JsonViewerProps>(
           moveTo(tree.rows.length - 1);
           break;
         case 'PageDown':
-          moveTo(currentIndex + Math.max(1, Math.floor(viewportHeight / effectiveRowHeight)));
+          moveTo(currentIndex + Math.max(
+            1,
+            Math.floor((treeRef.current?.clientHeight || 400) / 28),
+          ));
           break;
         case 'PageUp':
-          moveTo(currentIndex - Math.max(1, Math.floor(viewportHeight / effectiveRowHeight)));
+          moveTo(currentIndex - Math.max(
+            1,
+            Math.floor((treeRef.current?.clientHeight || 400) / 28),
+          ));
           break;
         case 'ArrowRight':
           if (!normalizedSearchQuery && currentRow.expandable && !currentRow.expanded) {
@@ -522,28 +467,7 @@ export const JsonViewer = forwardRef<JsonViewerHandle, JsonViewerProps>(
 
     const rootClassName = ['vjr-viewer', className].filter(Boolean).join(' ');
     const ariaLabel = htmlProps['aria-label'] ?? labels.tree;
-    const viewerStyle = virtualize
-      ? {
-          ...style,
-          '--vjr-row-height': `${effectiveRowHeight}px`,
-          blockSize: height,
-        }
-      : style;
-    const handleScroll = (event: UIEvent<HTMLDivElement>) => {
-      if (virtualize) {
-        const nextScrollTop = event.currentTarget.scrollTop;
-        setScrollTop(nextScrollTop);
-        const firstVisibleRow = tree.rows[
-          Math.min(
-            tree.rows.length - 1,
-            Math.max(0, Math.floor(nextScrollTop / effectiveRowHeight)),
-          )
-        ];
-        if (firstVisibleRow) setActivePointer(firstVisibleRow.pointer);
-      }
-      onScroll?.(event);
-    };
-    const rowElements = renderedRows.map(row => (
+    const renderRow = (row: TreeRowData) => (
       <TreeRow
         key={row.pointer}
         row={row}
@@ -562,7 +486,7 @@ export const JsonViewer = forwardRef<JsonViewerHandle, JsonViewerProps>(
         onActivate={activateRow}
         onCopy={(selectedRow, kind) => void copyRow(selectedRow, kind)}
       />
-    ));
+    );
     const searchStatus = normalizedSearchQuery
       ? `${labels.searchResults(searchResult.matches.size)}${
           searchResult.truncated ? `. ${labels.searchTruncated}` : ''
@@ -579,28 +503,18 @@ export const JsonViewer = forwardRef<JsonViewerHandle, JsonViewerProps>(
           aria-label={ariaLabel}
           aria-activedescendant={pointerToId(idPrefix, activePointer)}
           className={rootClassName}
-          style={viewerStyle}
+          style={style}
           data-theme={theme}
           onKeyDown={handleTreeKeyDown}
-          onScroll={handleScroll}
         >
-          {virtualize ? (
-            <div
-              role="none"
-              className="vjr-virtual-spacer"
-              style={{ blockSize: tree.rows.length * effectiveRowHeight }}
-            >
-              <div
-                role="none"
-                className="vjr-virtual-window"
-                style={{
-                  transform: `translateY(${virtualRange.start * effectiveRowHeight}px)`,
-                }}
-              >
-                {rowElements}
-              </div>
-            </div>
-          ) : rowElements}
+          <RowRenderer
+            rows={tree.rows}
+            activePointer={activePointer}
+            setActivePointer={setActivePointer}
+            treeRef={treeRef}
+            renderRow={renderRow}
+            options={__rowRendererOptions}
+          />
           {tree.truncated && (
             <div
               role="treeitem"
@@ -621,3 +535,7 @@ export const JsonViewer = forwardRef<JsonViewerHandle, JsonViewerProps>(
     );
   },
 );
+
+export const JsonViewer = JsonViewerImplementation as ForwardRefExoticComponent<
+  JsonViewerProps & RefAttributes<JsonViewerHandle>
+>;

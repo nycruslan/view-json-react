@@ -8,6 +8,10 @@ on:
 jobs:
   publish:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    concurrency:
+      group: npm-publish
+      cancel-in-progress: false
     # OIDC for npm Trusted Publishing: no long-lived npm token.
     # The trusted publisher is restricted to staging; a maintainer must review
     # and approve every release with npm 2FA before it becomes public.
@@ -16,13 +20,15 @@ jobs:
       id-token: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v7
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
 
       - name: Setup pnpm
-        uses: pnpm/action-setup@v6
+        uses: pnpm/action-setup@f520eceda224fe1a4aed5a2a27a194379a409996 # v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7
         with:
           node-version: '24'
           registry-url: 'https://registry.npmjs.org'
@@ -34,11 +40,20 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Build
-        run: pnpm build
+      - name: Verify tag matches package version
+        run: |
+          node -e "const version=require('./package.json').version; if (process.env.GITHUB_REF_NAME !== 'v'+version) { throw new Error('Tag must be v'+version) }"
+
+      - name: Build and test packed consumers
+        run: |
+          pnpm build
+          pnpm test:package
 
       - name: Inspect package
         run: npm pack --dry-run
 
       - name: Stage package on npm
-        run: npm stage publish --access public
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          PRERELEASE=$(node -e "const v=process.argv[1].split('-')[1]; process.stdout.write(v ? v.split('.')[0] : 'latest')" "$VERSION")
+          npm stage publish --access public --tag "$PRERELEASE"

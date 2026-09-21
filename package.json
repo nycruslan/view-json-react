@@ -8,8 +8,7 @@
   "module": "./dist/view-json-react.esm.js",
   "types": "./dist/index.d.ts",
   "sideEffects": [
-    "./dist/view-json-react.esm.js",
-    "./dist/view-json-react.cjs"
+    "./dist/styles.css"
   ],
   "author": "Ruslan Shulga",
   "repository": {
@@ -27,13 +26,26 @@
       "require": "./dist/view-json-react.cjs",
       "default": "./dist/view-json-react.esm.js"
     },
+    "./virtual": {
+      "types": "./dist/virtual.d.ts",
+      "import": "./dist/virtual.js",
+      "require": "./dist/virtual.cjs",
+      "default": "./dist/virtual.js"
+    },
+    "./headless": {
+      "types": "./dist/core/index.d.ts",
+      "import": "./dist/headless.js",
+      "require": "./dist/headless.cjs",
+      "default": "./dist/headless.js"
+    },
+    "./styles.css": {
+      "types": "./dist/styles.css.d.ts",
+      "default": "./dist/styles.css"
+    },
     "./package.json": "./package.json"
   },
   "files": [
-    "dist/*.js",
-    "dist/*.cjs",
-    "dist/*.d.ts",
-    "dist/*.map",
+    "dist",
     "README.md",
     "CHANGELOG.md",
     "CONTRIBUTING.md",
@@ -44,8 +56,11 @@
     "type": "github",
     "url": "https://github.com/sponsors/nycruslan"
   },
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
-    "build": "pnpm run clean && vite build && pnpm run size",
+    "build": "node scripts/build.mjs && pnpm run size",
     "build-storybook": "storybook build",
     "benchmark": "pnpm run build && node scripts/benchmark.mjs",
     "check": "pnpm run lint && pnpm run typecheck && pnpm run test:run && pnpm run build",
@@ -57,6 +72,7 @@
     "storybook": "storybook dev -p 6006",
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
+    "test:package": "node scripts/test-package.mjs",
     "test:run": "vitest run",
     "typecheck": "tsc --noEmit"
   },
@@ -86,13 +102,11 @@
     "jsdom": "30.1.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "sass": "^1.102.0",
     "size-limit": "^13.0.3",
     "storybook": "^10.5.9",
+    "terser": "5.51.2",
     "typescript": "^5.9.3",
     "vite": "^8.2.1",
-    "vite-plugin-css-injected-by-js": "^3.5.2",
-    "vite-plugin-dts": "^4.5.4",
     "vitest": "5.0.1"
   },
   "license": "MIT",
@@ -119,12 +133,20 @@
   ],
   "size-limit": [
     {
-      "path": "dist/view-json-react.cjs",
-      "limit": "20 KB"
+      "path": "dist/view-json-react.esm.js",
+      "limit": "8 KB"
     },
     {
-      "path": "dist/view-json-react.esm.js",
-      "limit": "20 KB"
+      "path": "dist/virtual.js",
+      "limit": "10 KB"
+    },
+    {
+      "path": "dist/headless.js",
+      "limit": "5 KB"
+    },
+    {
+      "path": "dist/styles.css",
+      "limit": "2.5 KB"
     }
   ]
 }
