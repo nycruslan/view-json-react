@@ -5,6 +5,7 @@ import {
   collectDefaultExpandedPaths,
   formatJsonPath,
   formatValue,
+  searchTree,
   stringifyValue,
   toJsonPointer,
 } from './index';
@@ -89,6 +90,42 @@ describe('tree building', () => {
   it('collects initial expansion paths by depth', () => {
     const paths = collectDefaultExpandedPaths({ nested: { value: 1 } }, 2);
     expect([...paths]).toEqual(['', '/nested']);
+  });
+
+  it('supports root-only depth limits and deterministic key sorting', () => {
+    const rootOnly = buildVisibleTree({ child: 1 }, {
+      isExpanded: () => true,
+      maxDepth: 0,
+    });
+    expect(rootOnly.rows).toHaveLength(1);
+    expect(rootOnly.rows[0].depthLimited).toBe(true);
+
+    const sorted = buildVisibleTree({ zebra: 1, alpha: 2 }, {
+      isExpanded: () => true,
+      sortKeys: true,
+    });
+    expect(sorted.rows.map(row => row.key)).toEqual([undefined, 'alpha', 'zebra']);
+  });
+});
+
+describe('tree search', () => {
+  it('finds collapsed descendants and includes their ancestors', () => {
+    const result = searchTree(
+      { user: { name: 'Ada', role: 'admin' }, ignored: true },
+      'ada',
+    );
+
+    expect([...result.matches]).toEqual(['/user/name']);
+    expect([...result.visible]).toEqual(['', '/user/name', '/user']);
+    expect(result.truncated).toBe(false);
+  });
+
+  it('bounds searches over large values', () => {
+    const result = searchTree(Array.from({ length: 100 }, (_, index) => index), '9', {
+      maxResults: 1,
+    });
+    expect(result.matches.size).toBe(1);
+    expect(result.truncated).toBe(true);
   });
 });
 

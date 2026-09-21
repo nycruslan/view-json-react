@@ -106,6 +106,10 @@ interface TreeRowProps {
   };
   labels: JsonViewerLabels;
   renderValue?: (context: ValueRenderContext) => ReactNode;
+  matched?: boolean;
+  collapseStringsAfterLength?: number;
+  stringExpanded: boolean;
+  onToggleString: (row: TreeRowData) => void;
   onActivate: (row: TreeRowData) => void;
   onCopy: (row: TreeRowData, kind: 'value' | 'path') => void;
 }
@@ -120,21 +124,50 @@ export const TreeRow = ({
   copyState,
   labels,
   renderValue,
+  matched,
+  collapseStringsAfterLength,
+  stringExpanded,
+  onToggleString,
   onActivate,
   onCopy,
 }: TreeRowProps) => {
   const name = getNodeName(row, rootName);
   const formatted = formatValue(row.value, row.type, row.referencePointer);
+  const stringLimit = Math.max(0, collapseStringsAfterLength ?? 0);
+  const stringCanCollapse = row.type === 'string'
+    && stringLimit > 0
+    && (row.value as string).length > stringLimit;
+  const truncatedString = stringCanCollapse && !stringExpanded
+    ? `${JSON.stringify((row.value as string).slice(0, stringLimit))}…`
+    : formatted;
+  const customValue = renderValue?.({
+    value: row.value,
+    formatted,
+    type: row.type,
+    path: row.path,
+  });
   const renderedValue = row.error
     ? <span className="vjr-value--unavailable">[Unavailable: {row.error.message}]</span>
     : row.expandable
       ? renderExpandableValue(row)
-      : renderValue?.({
-          value: row.value,
-          formatted,
-          type: row.type,
-          path: row.path,
-        }) ?? formatted;
+      : customValue ?? (stringCanCollapse ? (
+          <button
+            type="button"
+            className="vjr-string-toggle"
+            aria-expanded={stringExpanded}
+            aria-label={stringExpanded
+              ? labels.collapseString(name)
+              : labels.expandString(name)}
+            title={formatted}
+            tabIndex={active ? 0 : -1}
+            onClick={event => {
+              event.stopPropagation();
+              onToggleString(row);
+            }}
+          >
+            {truncatedString}
+          </button>
+        ) : formatted);
   const isPending = copyState?.pointer === row.pointer && copyState.status === 'pending';
   const copiedKind = copyState?.pointer === row.pointer && copyState.status === 'success'
     ? copyState.kind
@@ -151,6 +184,7 @@ export const TreeRow = ({
       role="treeitem"
       className="vjr-row"
       data-active={active || undefined}
+      data-search-match={matched || undefined}
       data-depth={row.depth}
       aria-label={getNodeDescription(row, rootName)}
       aria-level={row.depth + 1}

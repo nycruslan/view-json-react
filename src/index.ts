@@ -1,4 +1,5 @@
 export { JsonViewer } from './JsonViewer';
+export { VirtualJsonViewer } from './VirtualJsonViewer';
 
 export type {
   CopyOptions,
@@ -17,5 +18,6 @@ export type {
   JsonViewerTheme,
   OnCopyProps,
   ValueRenderContext,
+  VirtualJsonViewerProps,
   ValueType,
 } from './types';

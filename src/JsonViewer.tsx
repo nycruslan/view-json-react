@@ -10,11 +10,12 @@ import {
   useRef,
   useState,
 } from 'react';
-import type { KeyboardEvent } from 'react';
+import type { KeyboardEvent, UIEvent } from 'react';
 import {
   buildVisibleTree,
   collectDefaultExpandedPaths,
 } from './core/tree';
+import { searchTree } from './core/search';
 import {
   formatJsonPath,
   getParentPointer,
@@ -44,6 +45,10 @@ const DEFAULT_LABELS: JsonViewerLabels = {
   copyFailed: 'Could not copy to clipboard',
   truncated: limit => `Only the first ${limit} visible nodes are shown`,
   depthLimited: 'Maximum depth reached',
+  expandString: name => `Expand string value of ${name}`,
+  collapseString: name => `Collapse string value of ${name}`,
+  searchResults: count => `${count} search ${count === 1 ? 'match' : 'matches'}`,
+  searchTruncated: 'Search stopped at the configured safety limit',
 };
 
 const normalizeCopyOptions = (
@@ -84,9 +89,20 @@ export const JsonViewer = forwardRef<JsonViewerHandle, JsonViewerProps>(
       redact,
       maxDepth = 100,
       maxVisibleNodes = 10_000,
+      sortKeys = false,
+      collapseStringsAfterLength = 120,
+      searchQuery = '',
+      maxSearchResults = 1_000,
+      maxSearchNodes = 100_000,
+      onSearchMatchCount,
+      virtualize = false,
+      height = 400,
+      rowHeight = 28,
+      overscan = 6,
       labels: labelOverrides,
       renderValue,
       onKeyDown,
+      onScroll,
       ...htmlProps
     },
     ref,
@@ -96,20 +112,44 @@ export const JsonViewer = forwardRef<JsonViewerHandle, JsonViewerProps>(
       [labelOverrides],
     );
     const copyOptions = useMemo(() => normalizeCopyOptions(copy), [copy]);
+    const visibleNodeLimit = Number.isFinite(maxVisibleNodes)
+      ? Math.max(1, Math.floor(maxVisibleNodes))
+      : 10_000;
     const [uncontrolledExpandedPaths, setUncontrolledExpandedPaths] = useState(
       () => defaultExpandedPaths
         ? new Set(defaultExpandedPaths)
-        : collectDefaultExpandedPaths(data, defaultExpandDepth, maxVisibleNodes),
+        : collectDefaultExpandedPaths(data, defaultExpandDepth, visibleNodeLimit),
     );
     const currentExpandedPaths = expandedPaths ?? uncontrolledExpandedPaths;
-    const tree = useMemo(
+    const normalizedSearchQuery = searchQuery.trim();
+    const searchResult = useMemo(
+      () => searchTree(data, normalizedSearchQuery, {
+        maxDepth,
+        maxResults: maxSearchResults,
+        maxVisitedNodes: maxSearchNodes,
+        sortKeys,
+      }),
+      [data, maxDepth, maxSearchNodes, maxSearchResults, normalizedSearchQuery, sortKeys],
+    );
+    const normalTree = useMemo(
       () => buildVisibleTree(data, {
         isExpanded: path => currentExpandedPaths.has(toJsonPointer(path)),
         maxDepth,
-        maxVisibleNodes,
+        maxVisibleNodes: visibleNodeLimit,
+        sortKeys,
       }),
-      [currentExpandedPaths, data, maxDepth, maxVisibleNodes],
+      [currentExpandedPaths, data, maxDepth, sortKeys, visibleNodeLimit],
     );
+    const tree = useMemo(() => {
+      if (!normalizedSearchQuery) return normalTree;
+      const matchingRows = searchResult.rows.filter(row =>
+        searchResult.visible.has(row.pointer),
+      );
+      return {
+        rows: matchingRows.slice(0, visibleNodeLimit),
+        truncated: searchResult.truncated || matchingRows.length > visibleNodeLimit,
+      };
+    }, [normalTree, normalizedSearchQuery, searchResult, visibleNodeLimit]);
     const [activePointer, setActivePointer] = useState('');
     const [copyState, setCopyState] = useState<{
       pointer: string;
@@ -117,6 +157,13 @@ export const JsonViewer = forwardRef<JsonViewerHandle, JsonViewerProps>(
       status: 'pending' | 'success' | 'error';
     }>();
     const [statusMessage, setStatusMessage] = useState('');
+    const [expandedStrings, setExpandedStrings] = useState<Set<string>>(
+      () => new Set(),
+    );
+    const [scrollTop, setScrollTop] = useState(0);
+    const [viewportHeight, setViewportHeight] = useState(
+      typeof height === 'number' ? height : 400,
+    );
     const treeRef = useRef<HTMLDivElement>(null);
     const typeahead = useRef('');
     const typeaheadTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -126,10 +173,77 @@ export const JsonViewer = forwardRef<JsonViewerHandle, JsonViewerProps>(
       () => new Map(tree.rows.map(row => [row.pointer, row])),
       [tree.rows],
     );
+    const effectiveRowHeight = Number.isFinite(rowHeight)
+      ? Math.max(28, Math.floor(rowHeight))
+      : 28;
+    const effectiveOverscan = Number.isFinite(overscan)
+      ? Math.max(0, Math.floor(overscan))
+      : 6;
+    const activeIndex = Math.max(
+      0,
+      tree.rows.findIndex(row => row.pointer === activePointer),
+    );
+    const virtualRange = useMemo(() => {
+      if (!virtualize) return { start: 0, end: tree.rows.length };
+      const visibleCount = Math.max(1, Math.ceil(viewportHeight / effectiveRowHeight));
+      let start = Math.max(
+        0,
+        Math.floor(scrollTop / effectiveRowHeight) - effectiveOverscan,
+      );
+      let end = Math.min(
+        tree.rows.length,
+        start + visibleCount + effectiveOverscan * 2,
+      );
+      if (activeIndex < start || activeIndex >= end) {
+        start = Math.max(0, activeIndex - effectiveOverscan);
+        end = Math.min(
+          tree.rows.length,
+          start + visibleCount + effectiveOverscan * 2,
+        );
+      }
+      return { start, end };
+    }, [
+      activeIndex,
+      effectiveOverscan,
+      effectiveRowHeight,
+      scrollTop,
+      tree.rows.length,
+      viewportHeight,
+      virtualize,
+    ]);
+    const renderedRows = virtualize
+      ? tree.rows.slice(virtualRange.start, virtualRange.end)
+      : tree.rows;
 
     useEffect(() => {
       if (!rowByPointer.has(activePointer)) setActivePointer('');
     }, [activePointer, rowByPointer]);
+
+    useEffect(() => {
+      onSearchMatchCount?.(searchResult.matches.size);
+    }, [onSearchMatchCount, searchResult.matches.size]);
+
+    useEffect(() => {
+      if (!virtualize || !treeRef.current) return;
+      const element = treeRef.current;
+      const updateHeight = () => setViewportHeight(element.clientHeight || 400);
+      updateHeight();
+      if (typeof ResizeObserver === 'undefined') return;
+      const observer = new ResizeObserver(updateHeight);
+      observer.observe(element);
+      return () => observer.disconnect();
+    }, [virtualize]);
+
+    useEffect(() => {
+      if (!virtualize || !treeRef.current) return;
+      const element = treeRef.current;
+      const top = activeIndex * effectiveRowHeight;
+      const bottom = top + effectiveRowHeight;
+      if (top < element.scrollTop) element.scrollTop = top;
+      else if (bottom > element.scrollTop + element.clientHeight) {
+        element.scrollTop = bottom - element.clientHeight;
+      }
+    }, [activeIndex, effectiveRowHeight, virtualize]);
 
     useEffect(() => {
       if (!copyState || copyState.status === 'pending') return;
@@ -237,17 +351,37 @@ export const JsonViewer = forwardRef<JsonViewerHandle, JsonViewerProps>(
       return true;
     }, [rowByPointer]);
 
+    const moveMatch = useCallback((direction: 1 | -1): boolean => {
+      const matches = tree.rows.filter(row => searchResult.matches.has(row.pointer));
+      if (matches.length === 0) return false;
+      const currentIndex = matches.findIndex(row => row.pointer === activePointer);
+      const nextIndex = currentIndex < 0
+        ? direction === 1 ? 0 : matches.length - 1
+        : (currentIndex + direction + matches.length) % matches.length;
+      return focusPointer(matches[nextIndex].pointer);
+    }, [activePointer, focusPointer, searchResult.matches, tree.rows]);
+
+    const toggleString = useCallback((row: TreeRowData) => {
+      setExpandedStrings(current => {
+        const next = new Set(current);
+        if (next.has(row.pointer)) next.delete(row.pointer);
+        else next.add(row.pointer);
+        return next;
+      });
+    }, []);
+
     const expandAll = useCallback(() => {
       const allRows = buildVisibleTree(data, {
         isExpanded: () => true,
         maxDepth,
-        maxVisibleNodes,
+        maxVisibleNodes: visibleNodeLimit,
+        sortKeys,
       }).rows;
       const nextPaths = new Set(
         allRows.filter(row => row.expandable).map(row => row.pointer),
       );
       commitExpansion(nextPaths, { path: [], value: data, expanded: true });
-    }, [commitExpansion, data, maxDepth, maxVisibleNodes]);
+    }, [commitExpansion, data, maxDepth, sortKeys, visibleNodeLimit]);
 
     const collapseAll = useCallback(() => {
       setActivePointer('');
@@ -263,13 +397,17 @@ export const JsonViewer = forwardRef<JsonViewerHandle, JsonViewerProps>(
       collapse: path => setPointerExpanded(path, false),
       expandAll,
       collapseAll,
-    }), [collapseAll, expandAll, focusPointer, setPointerExpanded]);
+      nextMatch: () => moveMatch(1),
+      previousMatch: () => moveMatch(-1),
+    }), [collapseAll, expandAll, focusPointer, moveMatch, setPointerExpanded]);
 
     const activateRow = useCallback((row: TreeRowData) => {
       setActivePointer(row.pointer);
       treeRef.current?.focus();
-      if (row.expandable) setRowExpanded(row, !row.expanded);
-    }, [setRowExpanded]);
+      if (!normalizedSearchQuery && row.expandable) {
+        setRowExpanded(row, !row.expanded);
+      }
+    }, [normalizedSearchQuery, setRowExpanded]);
 
     const handleTreeKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
       onKeyDown?.(event);
@@ -297,6 +435,9 @@ export const JsonViewer = forwardRef<JsonViewerHandle, JsonViewerProps>(
       }
 
       switch (event.key) {
+        case 'F3':
+          if (!moveMatch(event.shiftKey ? -1 : 1)) return;
+          break;
         case 'ArrowDown':
           moveTo(currentIndex + 1);
           break;
@@ -309,15 +450,21 @@ export const JsonViewer = forwardRef<JsonViewerHandle, JsonViewerProps>(
         case 'End':
           moveTo(tree.rows.length - 1);
           break;
+        case 'PageDown':
+          moveTo(currentIndex + Math.max(1, Math.floor(viewportHeight / effectiveRowHeight)));
+          break;
+        case 'PageUp':
+          moveTo(currentIndex - Math.max(1, Math.floor(viewportHeight / effectiveRowHeight)));
+          break;
         case 'ArrowRight':
-          if (currentRow.expandable && !currentRow.expanded) {
+          if (!normalizedSearchQuery && currentRow.expandable && !currentRow.expanded) {
             setRowExpanded(currentRow, true);
           } else if (tree.rows[currentIndex + 1]?.depth === currentRow.depth + 1) {
             moveTo(currentIndex + 1);
           }
           break;
         case 'ArrowLeft':
-          if (currentRow.expandable && currentRow.expanded) {
+          if (!normalizedSearchQuery && currentRow.expandable && currentRow.expanded) {
             setRowExpanded(currentRow, false);
           } else {
             const parentPointer = getParentPointer(currentRow.pointer);
@@ -326,9 +473,12 @@ export const JsonViewer = forwardRef<JsonViewerHandle, JsonViewerProps>(
           break;
         case 'Enter':
         case ' ':
-          if (currentRow.expandable) setRowExpanded(currentRow, !currentRow.expanded);
+          if (!normalizedSearchQuery && currentRow.expandable) {
+            setRowExpanded(currentRow, !currentRow.expanded);
+          }
           break;
         case '*': {
+          if (normalizedSearchQuery) break;
           const nextPaths = new Set(currentExpandedPaths);
           for (const row of tree.rows) {
             if (
@@ -350,7 +500,7 @@ export const JsonViewer = forwardRef<JsonViewerHandle, JsonViewerProps>(
           if (event.key.length !== 1 || event.altKey || event.ctrlKey || event.metaKey) {
             return;
           }
-          typeahead.current += event.key.toLocaleLowerCase();
+          typeahead.current += event.key.toLowerCase();
           if (typeaheadTimer.current) clearTimeout(typeaheadTimer.current);
           typeaheadTimer.current = setTimeout(() => {
             typeahead.current = '';
@@ -359,7 +509,7 @@ export const JsonViewer = forwardRef<JsonViewerHandle, JsonViewerProps>(
           for (let offset = 1; offset <= tree.rows.length; offset += 1) {
             const index = (currentIndex + offset) % tree.rows.length;
             const candidate = tree.rows[index];
-            if (getRowName(candidate, rootName).toLocaleLowerCase().startsWith(query)) {
+            if (getRowName(candidate, rootName).toLowerCase().startsWith(query)) {
               moveTo(index);
               break;
             }
@@ -372,6 +522,52 @@ export const JsonViewer = forwardRef<JsonViewerHandle, JsonViewerProps>(
 
     const rootClassName = ['vjr-viewer', className].filter(Boolean).join(' ');
     const ariaLabel = htmlProps['aria-label'] ?? labels.tree;
+    const viewerStyle = virtualize
+      ? {
+          ...style,
+          '--vjr-row-height': `${effectiveRowHeight}px`,
+          blockSize: height,
+        }
+      : style;
+    const handleScroll = (event: UIEvent<HTMLDivElement>) => {
+      if (virtualize) {
+        const nextScrollTop = event.currentTarget.scrollTop;
+        setScrollTop(nextScrollTop);
+        const firstVisibleRow = tree.rows[
+          Math.min(
+            tree.rows.length - 1,
+            Math.max(0, Math.floor(nextScrollTop / effectiveRowHeight)),
+          )
+        ];
+        if (firstVisibleRow) setActivePointer(firstVisibleRow.pointer);
+      }
+      onScroll?.(event);
+    };
+    const rowElements = renderedRows.map(row => (
+      <TreeRow
+        key={row.pointer}
+        row={row}
+        id={pointerToId(idPrefix, row.pointer)}
+        active={row.pointer === activePointer}
+        rootName={rootName}
+        showObjectSize={showObjectSize}
+        copyOptions={{ value: copyOptions.value, path: copyOptions.path }}
+        copyState={copyState}
+        labels={labels}
+        renderValue={renderValue}
+        matched={searchResult.matches.has(row.pointer)}
+        collapseStringsAfterLength={collapseStringsAfterLength}
+        stringExpanded={expandedStrings.has(row.pointer)}
+        onToggleString={toggleString}
+        onActivate={activateRow}
+        onCopy={(selectedRow, kind) => void copyRow(selectedRow, kind)}
+      />
+    ));
+    const searchStatus = normalizedSearchQuery
+      ? `${labels.searchResults(searchResult.matches.size)}${
+          searchResult.truncated ? `. ${labels.searchTruncated}` : ''
+        }`
+      : '';
 
     return (
       <>
@@ -383,26 +579,28 @@ export const JsonViewer = forwardRef<JsonViewerHandle, JsonViewerProps>(
           aria-label={ariaLabel}
           aria-activedescendant={pointerToId(idPrefix, activePointer)}
           className={rootClassName}
-          style={style}
+          style={viewerStyle}
           data-theme={theme}
           onKeyDown={handleTreeKeyDown}
+          onScroll={handleScroll}
         >
-          {tree.rows.map(row => (
-            <TreeRow
-              key={row.pointer}
-              row={row}
-              id={pointerToId(idPrefix, row.pointer)}
-              active={row.pointer === activePointer}
-              rootName={rootName}
-              showObjectSize={showObjectSize}
-              copyOptions={{ value: copyOptions.value, path: copyOptions.path }}
-              copyState={copyState}
-              labels={labels}
-              renderValue={renderValue}
-              onActivate={activateRow}
-              onCopy={(selectedRow, kind) => void copyRow(selectedRow, kind)}
-            />
-          ))}
+          {virtualize ? (
+            <div
+              role="none"
+              className="vjr-virtual-spacer"
+              style={{ blockSize: tree.rows.length * effectiveRowHeight }}
+            >
+              <div
+                role="none"
+                className="vjr-virtual-window"
+                style={{
+                  transform: `translateY(${virtualRange.start * effectiveRowHeight}px)`,
+                }}
+              >
+                {rowElements}
+              </div>
+            </div>
+          ) : rowElements}
           {tree.truncated && (
             <div
               role="treeitem"
@@ -410,12 +608,14 @@ export const JsonViewer = forwardRef<JsonViewerHandle, JsonViewerProps>(
               aria-level={1}
               className="vjr-notice"
             >
-              {labels.truncated(maxVisibleNodes)}
+              {normalizedSearchQuery
+                ? labels.searchTruncated
+                : labels.truncated(visibleNodeLimit)}
             </div>
           )}
         </div>
         <span className="vjr-sr-only" role="status" aria-live="polite">
-          {statusMessage}
+          {statusMessage || searchStatus}
         </span>
       </>
     );

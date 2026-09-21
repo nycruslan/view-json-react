@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { createRef } from 'react';
 import axe from 'axe-core';
 import { JsonViewer } from './JsonViewer';
+import { VirtualJsonViewer } from './VirtualJsonViewer';
 import type { JsonViewerHandle } from './types';
 
 const installClipboard = (writeText = vi.fn().mockResolvedValue(undefined)) => {
@@ -107,6 +108,58 @@ describe('JsonViewer', () => {
         data={{ nested: { value: 1 }, items: [true, null] }}
         copy={{ value: true, path: true }}
       />,
+    );
+    const result = await axe.run(container, {
+      rules: { 'color-contrast': { enabled: false } },
+    });
+    expect(result.violations).toEqual([]);
+  });
+
+  it('searches collapsed descendants and navigates matches', () => {
+    const ref = createRef<JsonViewerHandle>();
+    const onSearchMatchCount = vi.fn();
+    render(
+      <JsonViewer
+        ref={ref}
+        data={{ hidden: { first: 'needle', second: 'needle' }, other: true }}
+        defaultExpandDepth={0}
+        searchQuery="needle"
+        onSearchMatchCount={onSearchMatchCount}
+      />,
+    );
+
+    expect(screen.getAllByRole('treeitem')).toHaveLength(4);
+    expect(screen.getAllByText('"needle"')).toHaveLength(2);
+    expect(onSearchMatchCount).toHaveBeenLastCalledWith(2);
+    act(() => expect(ref.current?.nextMatch()).toBe(true));
+    expect(screen.getByRole('tree')).toHaveAttribute(
+      'aria-activedescendant',
+      screen.getAllByText('"needle"')[0].closest('[role="treeitem"]')?.id,
+    );
+  });
+
+  it('collapses and expands long strings without changing the value', () => {
+    render(
+      <JsonViewer data={{ message: 'abcdefghij' }} collapseStringsAfterLength={4} />,
+    );
+    const toggle = screen.getByRole('button', { name: /expand string value of message/i });
+    expect(toggle).toHaveTextContent('"abcd"…');
+    fireEvent.click(toggle);
+    expect(screen.getByRole('button', { name: /collapse string value of message/i }))
+      .toHaveTextContent('"abcdefghij"');
+  });
+
+  it('windows large trees while preserving tree semantics', async () => {
+    const { container } = render(
+      <VirtualJsonViewer data={Array.from({ length: 1_000 }, (_, i) => i)} />,
+    );
+    const tree = screen.getByRole('tree');
+    expect(screen.getAllByRole('treeitem').length).toBeLessThan(50);
+
+    fireEvent.scroll(tree, { target: { scrollTop: 2_800 } });
+    expect(tree).toHaveAttribute(
+      'aria-activedescendant',
+      screen.getByRole('treeitem', { name: /99, number, 99/i }).id,
     );
     const result = await axe.run(container, {
       rules: { 'color-contrast': { enabled: false } },

@@ -15,6 +15,7 @@
     --vjr-focus: #0969da;
     --vjr-success: #1a7f37;
     --vjr-danger: #cf222e;
+    --vjr-match: #fff8c5;
     --vjr-font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
       "Liberation Mono", "Courier New", monospace;
     --vjr-font-size: 13px;
@@ -49,6 +50,7 @@
     --vjr-focus: #58a6ff;
     --vjr-success: #3fb950;
     --vjr-danger: #ff7b72;
+    --vjr-match: #4d3b00;
     color-scheme: dark;
   }
 
@@ -69,6 +71,7 @@
       --vjr-focus: #58a6ff;
       --vjr-success: #3fb950;
       --vjr-danger: #ff7b72;
+      --vjr-match: #4d3b00;
       color-scheme: dark;
     }
   }
@@ -80,7 +83,8 @@
 
   .vjr-row {
     display: flex;
-    min-block-size: 28px;
+    min-block-size: var(--vjr-row-height, 28px);
+    block-size: var(--vjr-row-height, auto);
     box-sizing: border-box;
     align-items: center;
     inline-size: max-content;
@@ -94,6 +98,10 @@
 
   .vjr-row:hover {
     background: var(--vjr-hover);
+  }
+
+  .vjr-row[data-search-match] {
+    background: var(--vjr-match);
   }
 
   .vjr-row[data-active] {
@@ -180,6 +188,20 @@
     color: var(--vjr-special);
   }
 
+  .vjr-string-toggle {
+    padding: 0;
+    border: 0;
+    color: inherit;
+    background: transparent;
+    font: inherit;
+    cursor: pointer;
+  }
+
+  .vjr-string-toggle:focus-visible {
+    outline: 2px solid var(--vjr-focus);
+    outline-offset: 2px;
+  }
+
   .vjr-size {
     margin-inline-start: 6px;
     font-size: 0.85em;
@@ -247,6 +269,17 @@
     stroke-width: 1.5;
     stroke-linecap: round;
     stroke-linejoin: round;
+  }
+
+  .vjr-virtual-spacer {
+    position: relative;
+    min-inline-size: 100%;
+  }
+
+  .vjr-virtual-window {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline: 0;
   }
 
   .vjr-notice {

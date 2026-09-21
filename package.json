@@ -47,6 +47,7 @@
   "scripts": {
     "build": "pnpm run clean && vite build && pnpm run size",
     "build-storybook": "storybook build",
+    "benchmark": "pnpm run build && node scripts/benchmark.mjs",
     "check": "pnpm run lint && pnpm run typecheck && pnpm run test:run && pnpm run build",
     "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
     "lint": "eslint .",

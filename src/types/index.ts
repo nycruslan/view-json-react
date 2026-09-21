@@ -11,6 +11,7 @@ import type {
   JsonPathSegment,
   JsonPrimitive,
   JsonValue,
+  KeyComparator,
   TreeRow,
   ValueType,
 } from '../core/types';
@@ -22,6 +23,7 @@ export type {
   JsonPathSegment,
   JsonPrimitive,
   JsonValue,
+  KeyComparator,
   TreeRow,
   ValueType,
 };
@@ -70,6 +72,10 @@ export interface JsonViewerLabels {
   copyFailed: string;
   truncated: (limit: number) => string;
   depthLimited: string;
+  expandString: (name: string) => string;
+  collapseString: (name: string) => string;
+  searchResults: (count: number) => string;
+  searchTruncated: string;
 }
 
 export interface ValueRenderContext {
@@ -86,6 +92,8 @@ export interface JsonViewerHandle {
   collapse: (path: JsonPath | string) => void;
   expandAll: () => void;
   collapseAll: () => void;
+  nextMatch: () => boolean;
+  previousMatch: () => boolean;
 }
 
 export interface JsonViewerProps
@@ -114,7 +122,19 @@ export interface JsonViewerProps
   ) => boolean | string | null | undefined;
   maxDepth?: number;
   maxVisibleNodes?: number;
+  sortKeys?: boolean | KeyComparator;
+  collapseStringsAfterLength?: number;
+  searchQuery?: string;
+  maxSearchResults?: number;
+  maxSearchNodes?: number;
+  onSearchMatchCount?: (count: number) => void;
+  virtualize?: boolean;
+  height?: number | string;
+  rowHeight?: number;
+  overscan?: number;
   labels?: Partial<JsonViewerLabels>;
   renderValue?: (context: ValueRenderContext) => ReactNode;
   onKeyDown?: (event: KeyboardEvent<HTMLDivElement>) => void;
 }
+
+export type VirtualJsonViewerProps = Omit<JsonViewerProps, 'virtualize'>;

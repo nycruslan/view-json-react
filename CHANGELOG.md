@@ -11,6 +11,9 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - A WAI-ARIA tree with complete arrow-key navigation, type-ahead, controlled expansion, imperative controls, and accessible copy feedback.
 - Safe rendering for non-JSON JavaScript values, throwing accessors, proxies, repeated references, and cycles.
 - Light, dark, and system themes with RTL, reduced-motion, forced-colors, and WCAG AA-oriented tokens.
+- Bounded full-tree search with match navigation, deterministic key sorting, and expandable long strings.
+- Dependency-free windowed rendering through `VirtualJsonViewer`, including Page Up/Page Down navigation.
+- A reproducible server-render benchmark for standard and windowed large-data rendering.
 - Pull-request quality gates for linting, type checking, tests, builds, dependency audits, and Storybook.
 
 ### Changed

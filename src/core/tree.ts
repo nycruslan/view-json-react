@@ -40,6 +40,9 @@ const findAncestor = (
   return undefined;
 };
 
+const compareKeys = (a: string, b: string): number =>
+  a < b ? -1 : a > b ? 1 : 0;
+
 const boundedInteger = (
   value: number | undefined,
   fallback: number,
@@ -91,6 +94,12 @@ export const buildVisibleTree = (
       size = inspected.size;
       error = inspected.error;
       entries = inspected.entries;
+      if (!error && type === 'object' && options.sortKeys) {
+        const comparator = options.sortKeys === true ? compareKeys : options.sortKeys;
+        entries = [...entries].sort((a, b) =>
+          comparator(String(a.key), String(b.key)),
+        );
+      }
       if (error) {
         expanded = false;
         expandable = false;

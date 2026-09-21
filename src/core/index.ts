@@ -1,4 +1,5 @@
 export { buildVisibleTree, collectDefaultExpandedPaths } from './tree';
+export { searchTree } from './search';
 export {
   appendPath,
   displayPointer,
@@ -20,9 +21,12 @@ export type {
   JsonPathSegment,
   JsonPrimitive,
   JsonValue,
+  KeyComparator,
   StringifyOptions,
   TreeBuildOptions,
   TreeBuildResult,
   TreeRow,
+  TreeSearchOptions,
+  TreeSearchResult,
   ValueType,
 } from './types';

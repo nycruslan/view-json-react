@@ -51,10 +51,27 @@ export interface TreeBuildResult {
   truncated: boolean;
 }
 
+export type KeyComparator = (a: string, b: string) => number;
+
 export interface TreeBuildOptions {
   isExpanded?: (path: JsonPath, depth: number) => boolean;
   maxDepth?: number;
   maxVisibleNodes?: number;
+  sortKeys?: boolean | KeyComparator;
+}
+
+export interface TreeSearchOptions {
+  maxDepth?: number;
+  maxResults?: number;
+  maxVisitedNodes?: number;
+  sortKeys?: boolean | KeyComparator;
+}
+
+export interface TreeSearchResult {
+  rows: TreeRow[];
+  matches: Set<string>;
+  visible: Set<string>;
+  truncated: boolean;
 }
 
 export interface StringifyOptions {
