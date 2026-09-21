@@ -11,7 +11,10 @@ Thank you for your interest in contributing to `view-json-react`!
 
 ## Development Setup
 
-**Requirements:** Node.js 24 and the pnpm version pinned in `package.json`
+**Requirements:** Node.js 24 and the pnpm version pinned in `package.json`.
+TypeScript is intentionally pinned to the newest release accepted by the
+`@typescript-eslint` peer range; do not force an unsupported compiler/parser
+combination.
 
 ```bash
 git clone https://github.com/nycruslan/view-json-react.git
@@ -23,22 +26,24 @@ pnpm install
 
 | Command | Description |
 |---|---|
+| `pnpm run audit` | Fail on any known dependency advisory |
 | `pnpm run storybook` | Start Storybook dev server on port 6006 |
 | `pnpm run test:run` | Run the unit and component tests once |
 | `pnpm run test:coverage` | Run tests with coverage thresholds |
 | `pnpm run test:package` | Test the packed ESM, CommonJS, types, SSR, CSS, and subpaths |
 | `pnpm run typecheck` | Check TypeScript types |
-| `pnpm run lint` | Check source and test lint rules |
+| `pnpm run lint` | Run ESLint and unused-code/dependency analysis |
 | `pnpm run lint:fix` | Apply safe ESLint fixes |
+| `pnpm run lint:unused` | Run Knip by itself |
 | `pnpm run build` | Build all entries, declarations, CSS, and size budgets |
 | `pnpm run benchmark` | Build and run the reproducible SSR benchmark |
-| `pnpm run check` | Run lint, type checks, tests, build, and size checks |
+| `pnpm run check` | Run lint, types, tests, builds, size limits, and packed-package validation |
 
 ## Pull Request Guidelines
 
 1. **Fork** the repository and create a branch from `main`.
 2. Keep changes focused — one feature or fix per PR.
-3. Make sure `pnpm run check` and `pnpm run test:package` pass before submitting a change.
+3. Make sure `pnpm run check` passes before submitting a change.
 4. Add behavior, keyboard, and axe coverage where applicable. Automated checks do not replace manual keyboard and screen-reader review.
 5. Update or add a Storybook story if your change affects the component API or visual output.
 6. Update `CHANGELOG.md` under the `[Unreleased]` section describing your change.

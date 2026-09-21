@@ -8,7 +8,7 @@ import {
   searchTree,
   stringifyValue,
   toJsonPointer,
-} from './index';
+} from './index.js';
 
 describe('JSON paths', () => {
   it('encodes JSON Pointer and JSONPath without ambiguity', () => {

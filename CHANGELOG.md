@@ -23,9 +23,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Began the v3 prerelease line as `3.0.0-next.0`.
 - Styles are now a static opt-in stylesheet instead of runtime injection, improving CSP and SSR compatibility.
 - Declaration generation now uses TypeScript directly, removing the API Extractor dependency chain.
+- Upgraded the complete development stack, including React 19.3, TypeScript 6, Vite 8.3, Storybook 10.6, ESLint 10.11, and Size Limit 14.
+- Added separate ESM and CommonJS declaration graphs, with package validation through publint and Are the Types Wrong.
+- Added Knip as a required unused-file, export, and dependency gate; removed the unused `user-event` dependency.
 - Copy operations now report actual asynchronous success or failure and support path copying and redaction.
 - JSON paths now use numeric array segments and keep `rootName` display-only.
 - Replaced mutating lint defaults and install-time builds with explicit check and prepack commands.
+- Removed the obsolete `fast-uri` override after eliminating its former API Extractor dependency path.
+
+### Security
+- Re-audited the full dependency graph: zero known advisories, zero runtime dependencies, deduplicated lockfile, explicit build-script policy, and a 24-hour package-release quarantine.
 
 ---
 

@@ -1,5 +1,5 @@
-export { VirtualJsonViewer } from './VirtualJsonViewer';
+export { VirtualJsonViewer } from './VirtualJsonViewer.js';
 export type {
   JsonViewerHandle,
   VirtualJsonViewerProps,
-} from './types';
+} from './types/index.js';

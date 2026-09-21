@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from '@storybook/react';
-import { VirtualJsonViewer } from './VirtualJsonViewer';
+import { VirtualJsonViewer } from './VirtualJsonViewer.js';
 
 const meta = {
   title: 'Components/VirtualJsonViewer',

@@ -27,6 +27,8 @@ npm install view-json-react
 # yarn add view-json-react
 ```
 
+Requires React 18 or 19. Node.js 18 or newer is supported for SSR; repository development uses Node.js 24.
+
 ## Quick start
 
 The stylesheet is explicit in v3. Import it once in your application entry point.
@@ -288,7 +290,7 @@ Both UI entries carry a `"use client"` boundary and can be server-rendered witho
 | `view-json-react/headless` | Data utilities | 3 KB Brotli |
 | `view-json-react/styles.css` | Static styles | 2 KB Brotli |
 
-Packed ESM, CommonJS, TypeScript, SSR, CSS, and subpath exports are tested in CI.
+Packed ESM, CommonJS, TypeScript, SSR, CSS, and subpath exports are tested in CI. publint and Are the Types Wrong validate both ESM and CommonJS declaration graphs.
 
 ## Migration, contributing, and license
 

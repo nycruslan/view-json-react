@@ -1,5 +1,5 @@
-import { displayPointer } from './path';
-import type { JsonPath, ValueType } from './types';
+import { displayPointer } from './path.js';
+import type { JsonPath, ValueType } from './types.js';
 
 const SPECIAL_VALUE = Symbol('view-json-react.special-value');
 
@@ -11,7 +11,7 @@ interface SpecialValue {
   readonly error?: Error;
 }
 
-export interface CollectionEntry {
+interface CollectionEntry {
   key: string | number;
   value: unknown;
 }
@@ -310,7 +310,7 @@ const normalizeForSerialization = (
 
 export const stringifyValue = (
   value: unknown,
-  options: import('./types').StringifyOptions = {},
+  options: import('./types.js').StringifyOptions = {},
 ): string => {
   const normalized = normalizeForSerialization(value, [], 0, undefined, {
     maxDepth: options.maxDepth ?? 100,

@@ -10,16 +10,16 @@ import type {
   ForwardRefExoticComponent,
   RefAttributes,
 } from 'react';
-import { JsonViewer } from './JsonViewer';
+import { JsonViewer } from './JsonViewer.js';
 import type {
   InternalRendererProps,
   RowRendererProps,
-} from './internal/RowRenderer';
+} from './internal/RowRenderer.js';
 import type {
   JsonViewerHandle,
   JsonViewerProps,
   VirtualJsonViewerProps,
-} from './types';
+} from './types/index.js';
 
 type VirtualOptions = {
   rowHeight: number;

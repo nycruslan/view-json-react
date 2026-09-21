@@ -2,6 +2,7 @@ import {
   copyFileSync,
   mkdirSync,
   readFileSync,
+  readdirSync,
   rmSync,
   writeFileSync,
 } from 'node:fs';
@@ -37,6 +38,23 @@ for (const file of [
 }
 
 runNode('node_modules/typescript/bin/tsc', ['-p', 'tsconfig.build.json']);
+
+const writeCommonJsDeclarations = directory => {
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const filePath = path.join(directory, entry.name);
+    if (entry.isDirectory()) {
+      writeCommonJsDeclarations(filePath);
+    } else if (entry.name.endsWith('.d.ts')) {
+      const declaration = readFileSync(filePath, 'utf8').replace(
+        /(["']\.\.?\/[^"']+)\.js(["'])/g,
+        '$1.cjs$2',
+      );
+      writeFileSync(filePath.replace(/\.d\.ts$/, '.d.cts'), declaration);
+    }
+  }
+};
+writeCommonJsDeclarations(path.join(root, 'dist'));
+
 copyFileSync(path.join(root, 'src/styles.css'), path.join(root, 'dist/styles.css'));
 writeFileSync(
   path.join(root, 'dist/styles.css.d.ts'),

@@ -5,7 +5,7 @@ import type {
   RefObject,
   SetStateAction,
 } from 'react';
-import type { TreeRow } from '../types';
+import type { TreeRow } from '../types/index.js';
 
 export interface RowRendererProps {
   rows: TreeRow[];

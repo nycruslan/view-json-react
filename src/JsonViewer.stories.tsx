@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Meta, StoryObj } from '@storybook/react';
-import { JsonViewer } from './JsonViewer';
+import { JsonViewer } from './JsonViewer.js';
 
 const sampleData = {
   user: {

@@ -3,14 +3,28 @@
 # quarantine window is visible in-repo and survives pnpm default changes.
 # The packageManager pin in package.json keeps everyone on pnpm 12.
 minimumReleaseAge: 1440
+minimumReleaseAgeStrict: true
+minimumReleaseAgeIgnoreMissingTime: false
+trustPolicy: no-downgrade
+# Babel still requires this mature semver release, whose historical publish
+# metadata predates npm's current trust model. Keep the exception exact.
+trustPolicyExclude:
+  - semver@6.3.1
+trustPolicyExcludePrune: true
+blockExoticSubdeps: true
+trustLockfile: false
+strictPeerDependencies: true
 
-# Keep the patched 3.x release required by API Extractor's dependency range.
-overrides:
-  fast-uri: 3.1.6
+# Include pinned Actions in routine update checks. TypeScript 7 remains ignored
+# until @typescript-eslint expands its current <6.1 peer range.
+update:
+  githubActions: true
+  ignoreDeps:
+    - typescript
 
-# Build-script approval (pnpm 11 syntax). esbuild needs its postinstall to
-# place the platform binary; @parcel/watcher works from prebuilt binaries,
-# so its scripts stay denied, matching the previous pnpm 10 behavior.
+# Build-script approval. esbuild needs its postinstall to place the platform
+# binary; @parcel/watcher works from prebuilt binaries, so its scripts remain
+# denied.
 allowBuilds:
   esbuild: true
   '@parcel/watcher': false

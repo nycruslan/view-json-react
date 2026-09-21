@@ -2,6 +2,9 @@
   "name": "view-json-react",
   "version": "3.0.0-next.0",
   "packageManager": "pnpm@12.5.1",
+  "engines": {
+    "node": ">=18"
+  },
   "description": "A lightweight, accessible React tree for safely inspecting JSON and JavaScript values",
   "type": "module",
   "main": "./dist/view-json-react.cjs",
@@ -21,21 +24,36 @@
   },
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/view-json-react.esm.js",
-      "require": "./dist/view-json-react.cjs",
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/view-json-react.esm.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/view-json-react.cjs"
+      },
       "default": "./dist/view-json-react.esm.js"
     },
     "./virtual": {
-      "types": "./dist/virtual.d.ts",
-      "import": "./dist/virtual.js",
-      "require": "./dist/virtual.cjs",
+      "import": {
+        "types": "./dist/virtual.d.ts",
+        "default": "./dist/virtual.js"
+      },
+      "require": {
+        "types": "./dist/virtual.d.cts",
+        "default": "./dist/virtual.cjs"
+      },
       "default": "./dist/virtual.js"
     },
     "./headless": {
-      "types": "./dist/core/index.d.ts",
-      "import": "./dist/headless.js",
-      "require": "./dist/headless.cjs",
+      "import": {
+        "types": "./dist/core/index.d.ts",
+        "default": "./dist/headless.js"
+      },
+      "require": {
+        "types": "./dist/core/index.d.cts",
+        "default": "./dist/headless.cjs"
+      },
       "default": "./dist/headless.js"
     },
     "./styles.css": {
@@ -61,13 +79,15 @@
     "access": "public"
   },
   "scripts": {
+    "audit": "pnpm audit --audit-level low",
     "build": "node scripts/build.mjs && pnpm run size",
     "build-storybook": "storybook build",
     "benchmark": "pnpm run build && node --expose-gc scripts/benchmark.mjs",
-    "check": "pnpm run lint && pnpm run typecheck && pnpm run test:run && pnpm run build",
+    "check": "pnpm run lint && pnpm run typecheck && pnpm run test:run && pnpm run build && pnpm run test:package",
     "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
-    "lint": "eslint .",
+    "lint": "eslint . && knip",
     "lint:fix": "eslint . --fix",
+    "lint:unused": "knip",
     "prepack": "pnpm run build",
     "size": "size-limit",
     "storybook": "storybook dev -p 6006",
@@ -78,36 +98,38 @@
     "typecheck": "tsc --noEmit"
   },
   "peerDependencies": {
-    "react": ">=18.0.0",
-    "react-dom": ">=18.0.0"
+    "react": ">=18 <20",
+    "react-dom": ">=18 <20"
   },
   "devDependencies": {
-    "@size-limit/file": "^13.0.3",
-    "@storybook/addon-docs": "^10.5.9",
-    "@storybook/react": "^10.5.9",
-    "@storybook/react-vite": "^10.5.9",
+    "@arethetypeswrong/cli": "0.18.5",
+    "@size-limit/file": "^14.0.0",
+    "@storybook/addon-docs": "^10.6.0",
+    "@storybook/react": "^10.6.0",
+    "@storybook/react-vite": "^10.6.0",
     "@testing-library/jest-dom": "7.0.1",
     "@testing-library/react": "16.3.3",
-    "@testing-library/user-event": "14.6.7",
-    "@types/node": "^26.2.0",
-    "@types/react": "^19.2.18",
-    "@types/react-dom": "^19.2.4",
-    "@typescript-eslint/eslint-plugin": "^8.67.0",
-    "@typescript-eslint/parser": "^8.67.0",
-    "@vitejs/plugin-react": "^6.0.0",
+    "@types/node": "^26.6.2",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.70.0",
+    "@typescript-eslint/parser": "^8.70.0",
+    "@vitejs/plugin-react": "^6.1.1",
     "@vitest/coverage-v8": "5.0.1",
     "axe-core": "4.13.0",
-    "eslint": "^10.8.1",
+    "eslint": "^10.11.0",
     "eslint-plugin-react-hooks": "^7.1.1",
-    "eslint-plugin-react-refresh": "^0.4.26",
+    "eslint-plugin-react-refresh": "^0.5.7",
     "jsdom": "30.1.0",
-    "react": "^19.2.8",
-    "react-dom": "^19.2.8",
-    "size-limit": "^13.0.3",
-    "storybook": "^10.5.9",
+    "knip": "6.37.0",
+    "publint": "0.3.24",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
+    "size-limit": "^14.0.0",
+    "storybook": "^10.6.0",
     "terser": "5.51.2",
-    "typescript": "^5.9.3",
-    "vite": "^8.2.1",
+    "typescript": "6.0.3",
+    "vite": "^8.3.0",
     "vitest": "5.0.1"
   },
   "license": "MIT",

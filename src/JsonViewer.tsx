@@ -18,19 +18,19 @@ import type {
 import {
   buildVisibleTree,
   collectDefaultExpandedPaths,
-} from './core/tree';
-import { searchTree } from './core/search';
+} from './core/tree.js';
+import { searchTree } from './core/search.js';
 import {
   formatJsonPath,
   getParentPointer,
   toJsonPointer,
-} from './core/path';
-import { stringifyValue } from './core/value';
-import { TreeRow } from './components/TreeRow';
+} from './core/path.js';
+import { stringifyValue } from './core/value.js';
+import { TreeRow } from './components/TreeRow.js';
 import {
   StandardRowRenderer,
-} from './internal/RowRenderer';
-import type { InternalRendererProps } from './internal/RowRenderer';
+} from './internal/RowRenderer.js';
+import type { InternalRendererProps } from './internal/RowRenderer.js';
 import type {
   CopyOptions,
   CopyResult,
@@ -40,7 +40,7 @@ import type {
   JsonViewerLabels,
   JsonViewerProps,
   TreeRow as TreeRowData,
-} from './types';
+} from './types/index.js';
 
 const DEFAULT_LABELS: JsonViewerLabels = {
   tree: 'JSON data',

@@ -42,7 +42,22 @@ try {
     ? parsedPackOutput[0]
     : Object.values(parsedPackOutput)[0];
   const { filename } = packResult;
-  run('tar', ['-xzf', path.join(temporaryDirectory, filename), '-C', temporaryDirectory]);
+  const tarballPath = path.join(temporaryDirectory, filename);
+  run(process.execPath, [
+    path.join(root, 'node_modules/publint/src/cli.js'),
+    tarballPath,
+    '--pack=false',
+    '--strict',
+  ]);
+  run(process.execPath, [
+    path.join(root, 'node_modules/@arethetypeswrong/cli/dist/index.js'),
+    tarballPath,
+    '--profile',
+    'node16',
+    '--exclude-entrypoints',
+    './styles.css',
+  ]);
+  run('tar', ['-xzf', tarballPath, '-C', temporaryDirectory]);
 
   const nodeModules = path.join(temporaryDirectory, 'node_modules');
   mkdirSync(nodeModules);
@@ -102,21 +117,36 @@ const virtualProps: VirtualJsonViewerProps = { ...props, height: 300 };
 void [JsonViewer, VirtualJsonViewer, searchTree(props.data, 'ok'), path, virtualProps];
 `,
   );
+  writeFileSync(
+    path.join(temporaryDirectory, 'consumer.cts'),
+    `import { JsonViewer, type JsonViewerProps } from 'view-json-react';
+import { VirtualJsonViewer } from 'view-json-react/virtual';
+import { toJsonPointer } from 'view-json-react/headless';
+const props: JsonViewerProps = { data: null };
+void [JsonViewer, VirtualJsonViewer, toJsonPointer([]), props];
+`,
+  );
+  writeFileSync(
+    path.join(temporaryDirectory, 'tsconfig.json'),
+    JSON.stringify({
+      compilerOptions: {
+        module: 'NodeNext',
+        moduleResolution: 'NodeNext',
+        noEmit: true,
+        skipLibCheck: true,
+        strict: true,
+        target: 'ES2020',
+      },
+      files: ['consumer.ts', 'consumer.cts'],
+    }),
+  );
 
   run(process.execPath, ['consumer.mjs']);
   run(process.execPath, ['consumer.cjs']);
   run(process.execPath, [
     path.join(root, 'node_modules/typescript/bin/tsc'),
-    '--noEmit',
-    '--strict',
-    '--skipLibCheck',
-    '--target',
-    'ES2020',
-    '--module',
-    'NodeNext',
-    '--moduleResolution',
-    'NodeNext',
-    'consumer.ts',
+    '--project',
+    'tsconfig.json',
   ]);
 
   const packedRoot = path.join(nodeModules, 'view-json-react', 'dist');
@@ -135,7 +165,7 @@ void [JsonViewer, VirtualJsonViewer, searchTree(props.data, 'ok'), path, virtual
     }
   }
 
-  console.log('Packed ESM, CommonJS, types, SSR, CSS, and subpath exports passed.');
+  console.log('Packed ESM, CommonJS, TypeScript, SSR, CSS, publint, ATTW, and subpath exports passed.');
 } finally {
   rmSync(temporaryDirectory, { recursive: true, force: true });
 }

@@ -2,9 +2,9 @@ import { act, fireEvent, render, screen, waitFor } from '@testing-library/react'
 import { describe, expect, it, vi } from 'vitest';
 import { createRef } from 'react';
 import axe from 'axe-core';
-import { JsonViewer } from './JsonViewer';
-import { VirtualJsonViewer } from './VirtualJsonViewer';
-import type { JsonViewerHandle } from './types';
+import { JsonViewer } from './JsonViewer.js';
+import { VirtualJsonViewer } from './VirtualJsonViewer.js';
+import type { JsonViewerHandle } from './types/index.js';
 
 const installClipboard = (writeText = vi.fn().mockResolvedValue(undefined)) => {
   Object.defineProperty(navigator, 'clipboard', {

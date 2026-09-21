@@ -1,4 +1,4 @@
-export { JsonViewer } from './JsonViewer';
+export { JsonViewer } from './JsonViewer.js';
 
 export type {
   CopyOptions,
@@ -19,4 +19,4 @@ export type {
   OnCopyProps,
   ValueRenderContext,
   ValueType,
-} from './types';
+} from './types/index.js';

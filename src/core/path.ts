@@ -1,4 +1,4 @@
-import type { JsonPath, JsonPathSegment } from './types';
+import type { JsonPath, JsonPathSegment } from './types.js';
 
 const escapePointerSegment = (segment: JsonPathSegment): string =>
   String(segment).replaceAll('~', '~0').replaceAll('/', '~1');

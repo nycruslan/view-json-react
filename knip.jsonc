@@ -1,0 +1,14 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [
+    "src/index.ts",
+    "src/virtual.ts",
+    "src/core/index.ts",
+    "scripts/*.mjs"
+  ],
+  "ignoreDependencies": [
+    // These CLIs run against the temporary tarball created by test-package.mjs.
+    "@arethetypeswrong/cli",
+    "publint"
+  ]
+}

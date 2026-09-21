@@ -1,11 +1,11 @@
 import type { MouseEvent, ReactNode } from 'react';
-import { formatValue } from '../core/value';
+import { formatValue } from '../core/value.js';
 import type {
   CopyOptions,
   JsonViewerLabels,
   TreeRow as TreeRowData,
   ValueRenderContext,
-} from '../types';
+} from '../types/index.js';
 
 interface CopyButtonProps {
   kind: 'value' | 'path';

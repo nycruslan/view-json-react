@@ -14,7 +14,7 @@ import type {
   KeyComparator,
   TreeRow,
   ValueType,
-} from '../core/types';
+} from '../core/types.js';
 
 export type {
   JsonArray,

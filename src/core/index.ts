@@ -1,19 +1,19 @@
-export { buildVisibleTree, collectDefaultExpandedPaths } from './tree';
-export { searchTree } from './search';
+export { buildVisibleTree, collectDefaultExpandedPaths } from './tree.js';
+export { searchTree } from './search.js';
 export {
   appendPath,
   displayPointer,
   formatJsonPath,
   getParentPointer,
   toJsonPointer,
-} from './path';
+} from './path.js';
 export {
   classifyValue,
   formatValue,
   inspectCollection,
   isExpandableType,
   stringifyValue,
-} from './value';
+} from './value.js';
 export type {
   JsonArray,
   JsonObject,
@@ -29,4 +29,4 @@ export type {
   TreeSearchOptions,
   TreeSearchResult,
   ValueType,
-} from './types';
+} from './types.js';

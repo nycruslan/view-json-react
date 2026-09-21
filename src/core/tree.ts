@@ -1,16 +1,16 @@
-import { appendPath, toJsonPointer } from './path';
+import { appendPath, toJsonPointer } from './path.js';
 import {
   classifyValue,
   inspectCollection,
   isExpandableType,
-} from './value';
+} from './value.js';
 import type {
   JsonPath,
   JsonPathSegment,
   TreeBuildOptions,
   TreeBuildResult,
   TreeRow,
-} from './types';
+} from './types.js';
 
 interface Ancestor {
   value: object;

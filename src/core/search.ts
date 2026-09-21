@@ -1,7 +1,7 @@
-import { getParentPointer } from './path';
-import { buildVisibleTree } from './tree';
-import type { TreeRow, TreeSearchOptions, TreeSearchResult } from './types';
-import { formatValue } from './value';
+import { getParentPointer } from './path.js';
+import { buildVisibleTree } from './tree.js';
+import type { TreeRow, TreeSearchOptions, TreeSearchResult } from './types.js';
+import { formatValue } from './value.js';
 
 const searchableText = (row: TreeRow): string => {
   const key = row.key === undefined ? 'root' : String(row.key);
