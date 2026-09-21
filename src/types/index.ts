@@ -1,47 +1,120 @@
-import type { CSSProperties } from 'react';
+import type {
+  CSSProperties,
+  HTMLAttributes,
+  KeyboardEvent,
+  ReactNode,
+} from 'react';
+import type {
+  JsonArray,
+  JsonObject,
+  JsonPath,
+  JsonPathSegment,
+  JsonPrimitive,
+  JsonValue,
+  TreeRow,
+  ValueType,
+} from '../core/types';
 
-// JSON type definitions with proper type safety
-export type JsonPrimitive = string | number | boolean | null;
-export type JsonObject = { [key: string]: JsonValue };
-export type JsonArray = JsonValue[];
-export type JsonValue = JsonPrimitive | JsonObject | JsonArray;
-
-// Type guard for collapsible nodes
-export const isCollapsible = (value: unknown): value is JsonObject | JsonArray => {
-  return typeof value === 'object' && value !== null;
+export type {
+  JsonArray,
+  JsonObject,
+  JsonPath,
+  JsonPathSegment,
+  JsonPrimitive,
+  JsonValue,
+  TreeRow,
+  ValueType,
 };
 
-// Helper to construct full path for copy operations
-export const getFullPath = (path: string[], rootName?: string): string[] => {
-  return rootName && path.length === 0 ? [rootName] : path;
+export type JsonViewerTheme = 'light' | 'dark' | 'auto';
+
+export type JsonViewerStyle = CSSProperties & {
+  [variable: `--vjr-${string}`]: string | number | undefined;
 };
 
-// Copy callback types
-export type OnCopyProps = {
-  path: string[];
-  value: JsonValue;
-};
-
-// Public API props
-export interface JsonViewerProps {
-  data: unknown;
-  defaultExpandDepth?: number;
-  rootName?: string;
-  className?: string;
-  style?: CSSProperties;
-  theme?: 'light' | 'dark';
-  showObjectSize?: boolean;
-  onCopy?: (copyInfo: OnCopyProps) => void;
+export interface CopyOptions {
+  value?: boolean;
+  path?: boolean;
+  indent?: number;
+  stringify?: (
+    value: unknown,
+    path: JsonPath,
+  ) => string | Promise<string>;
 }
 
-// Internal props for recursive rendering
-export interface JsonNodeProps {
-  data: JsonValue;
-  name?: string;
-  path: string[];
-  depth: number;
-  defaultExpandDepth: number;
+export interface CopyResult {
+  path: JsonPath;
+  value: unknown;
+  text: string;
+  kind: 'value' | 'path';
+  success: boolean;
+  error?: unknown;
+}
+
+/** @deprecated Use CopyResult. */
+export type OnCopyProps = CopyResult;
+
+export interface ExpansionChange {
+  path: JsonPath;
+  value: unknown;
+  expanded: boolean;
+}
+
+export interface JsonViewerLabels {
+  tree: string;
+  expand: (name: string) => string;
+  collapse: (name: string) => string;
+  copyValue: (name: string) => string;
+  copyPath: (name: string) => string;
+  copied: string;
+  copyFailed: string;
+  truncated: (limit: number) => string;
+  depthLimited: string;
+}
+
+export interface ValueRenderContext {
+  value: unknown;
+  formatted: string;
+  type: ValueType;
+  path: JsonPath;
+}
+
+export interface JsonViewerHandle {
+  focus: () => void;
+  focusPath: (path: JsonPath | string) => boolean;
+  expand: (path: JsonPath | string) => void;
+  collapse: (path: JsonPath | string) => void;
+  expandAll: () => void;
+  collapseAll: () => void;
+}
+
+export interface JsonViewerProps
+  extends Omit<
+    HTMLAttributes<HTMLDivElement>,
+    'children' | 'onCopy' | 'style' | 'role'
+  > {
+  data: unknown;
+  defaultExpandDepth?: number;
+  defaultExpandedPaths?: Iterable<string>;
+  expandedPaths?: ReadonlySet<string>;
+  onExpandedPathsChange?: (
+    paths: ReadonlySet<string>,
+    change: ExpansionChange,
+  ) => void;
+  onExpand?: (change: ExpansionChange) => void;
   rootName?: string;
+  style?: JsonViewerStyle;
+  theme?: JsonViewerTheme;
   showObjectSize?: boolean;
-  onCopy?: (copyInfo: OnCopyProps) => void;
+  copy?: boolean | CopyOptions;
+  onCopy?: (result: CopyResult) => void;
+  redact?: (
+    path: JsonPath,
+    value: unknown,
+  ) => boolean | string | null | undefined;
+  maxDepth?: number;
+  maxVisibleNodes?: number;
+  labels?: Partial<JsonViewerLabels>;
+  renderValue?: (context: ValueRenderContext) => ReactNode;
+  onKeyDown?: (event: KeyboardEvent<HTMLDivElement>) => void;
 }

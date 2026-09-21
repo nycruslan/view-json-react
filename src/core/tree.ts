@@ -40,17 +40,21 @@ const findAncestor = (
   return undefined;
 };
 
-const positiveInteger = (value: number | undefined, fallback: number): number => {
+const boundedInteger = (
+  value: number | undefined,
+  fallback: number,
+  minimum: number,
+): number => {
   if (value === undefined || !Number.isFinite(value)) return fallback;
-  return Math.max(1, Math.floor(value));
+  return Math.max(minimum, Math.floor(value));
 };
 
 export const buildVisibleTree = (
   data: unknown,
   options: TreeBuildOptions = {},
 ): TreeBuildResult => {
-  const maxDepth = positiveInteger(options.maxDepth, 100);
-  const maxVisibleNodes = positiveInteger(options.maxVisibleNodes, 10_000);
+  const maxDepth = boundedInteger(options.maxDepth, 100, 0);
+  const maxVisibleNodes = boundedInteger(options.maxVisibleNodes, 10_000, 1);
   const isExpanded = options.isExpanded ?? (() => false);
   const rows: TreeRow[] = [];
   const stack: PendingNode[] = [
@@ -74,7 +78,7 @@ export const buildVisibleTree = (
       if (referencePointer !== undefined) type = 'reference';
     }
 
-    const expandable = isExpandableType(type);
+    let expandable = isExpandableType(type);
     let expanded = expandable && isExpanded(pending.path, pending.depth);
     let size: number | undefined;
     let error: Error | undefined;
@@ -87,7 +91,10 @@ export const buildVisibleTree = (
       size = inspected.size;
       error = inspected.error;
       entries = inspected.entries;
-      if (error) expanded = false;
+      if (error) {
+        expanded = false;
+        expandable = false;
+      }
       if (expanded && pending.depth >= maxDepth) {
         expanded = false;
         depthLimited = true;

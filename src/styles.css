@@ -1,0 +1,296 @@
+@layer view-json-react {
+  .vjr-viewer {
+    --vjr-background: #ffffff;
+    --vjr-text: #24292f;
+    --vjr-key: #0550ae;
+    --vjr-index: #6639ba;
+    --vjr-string: #116329;
+    --vjr-number: #6639ba;
+    --vjr-boolean: #953800;
+    --vjr-null: #cf222e;
+    --vjr-special: #57606a;
+    --vjr-border: #d0d7de;
+    --vjr-hover: #f6f8fa;
+    --vjr-active: #ddf4ff;
+    --vjr-focus: #0969da;
+    --vjr-success: #1a7f37;
+    --vjr-danger: #cf222e;
+    --vjr-font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+      "Liberation Mono", "Courier New", monospace;
+    --vjr-font-size: 13px;
+    --vjr-line-height: 1.5;
+    --vjr-indent: 16px;
+
+    box-sizing: border-box;
+    max-inline-size: 100%;
+    overflow: auto;
+    color: var(--vjr-text);
+    background: var(--vjr-background);
+    font-family: var(--vjr-font-family);
+    font-size: var(--vjr-font-size);
+    line-height: var(--vjr-line-height);
+    color-scheme: light;
+    outline: none;
+  }
+
+  .vjr-viewer[data-theme="dark"] {
+    --vjr-background: #0d1117;
+    --vjr-text: #e6edf3;
+    --vjr-key: #79c0ff;
+    --vjr-index: #d2a8ff;
+    --vjr-string: #7ee787;
+    --vjr-number: #d2a8ff;
+    --vjr-boolean: #ffa657;
+    --vjr-null: #ff7b72;
+    --vjr-special: #8b949e;
+    --vjr-border: #30363d;
+    --vjr-hover: #161b22;
+    --vjr-active: #1f2d3d;
+    --vjr-focus: #58a6ff;
+    --vjr-success: #3fb950;
+    --vjr-danger: #ff7b72;
+    color-scheme: dark;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    .vjr-viewer[data-theme="auto"] {
+      --vjr-background: #0d1117;
+      --vjr-text: #e6edf3;
+      --vjr-key: #79c0ff;
+      --vjr-index: #d2a8ff;
+      --vjr-string: #7ee787;
+      --vjr-number: #d2a8ff;
+      --vjr-boolean: #ffa657;
+      --vjr-null: #ff7b72;
+      --vjr-special: #8b949e;
+      --vjr-border: #30363d;
+      --vjr-hover: #161b22;
+      --vjr-active: #1f2d3d;
+      --vjr-focus: #58a6ff;
+      --vjr-success: #3fb950;
+      --vjr-danger: #ff7b72;
+      color-scheme: dark;
+    }
+  }
+
+  .vjr-viewer:focus-visible {
+    outline: 2px solid var(--vjr-focus);
+    outline-offset: 2px;
+  }
+
+  .vjr-row {
+    display: flex;
+    min-block-size: 28px;
+    box-sizing: border-box;
+    align-items: center;
+    inline-size: max-content;
+    min-inline-size: 100%;
+    padding-block: 2px;
+    padding-inline-end: 4px;
+    border-radius: 4px;
+    white-space: nowrap;
+    cursor: default;
+  }
+
+  .vjr-row:hover {
+    background: var(--vjr-hover);
+  }
+
+  .vjr-row[data-active] {
+    background: var(--vjr-active);
+  }
+
+  .vjr-indentation {
+    display: inline-flex;
+    align-self: stretch;
+    flex: none;
+  }
+
+  .vjr-guide {
+    inline-size: var(--vjr-indent);
+    border-inline-end: 1px solid var(--vjr-border);
+    box-sizing: border-box;
+  }
+
+  .vjr-chevron {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    inline-size: 20px;
+    block-size: 24px;
+    color: var(--vjr-special);
+    font-family: system-ui, sans-serif;
+    font-size: 20px;
+    line-height: 1;
+    transform-origin: center;
+    transition: transform 120ms ease;
+  }
+
+  .vjr-chevron--expanded {
+    transform: rotate(90deg);
+  }
+
+  .vjr-key {
+    color: var(--vjr-key);
+  }
+
+  .vjr-index {
+    color: var(--vjr-index);
+  }
+
+  .vjr-colon {
+    margin-inline-end: 6px;
+    color: var(--vjr-text);
+  }
+
+  .vjr-value--string {
+    color: var(--vjr-string);
+  }
+
+  .vjr-value--number,
+  .vjr-value--bigint {
+    color: var(--vjr-number);
+  }
+
+  .vjr-value--boolean {
+    color: var(--vjr-boolean);
+  }
+
+  .vjr-value--null {
+    color: var(--vjr-null);
+  }
+
+  .vjr-value--undefined,
+  .vjr-value--symbol,
+  .vjr-value--function,
+  .vjr-value--date,
+  .vjr-value--regexp,
+  .vjr-value--map,
+  .vjr-value--set,
+  .vjr-value--error,
+  .vjr-value--typed-array,
+  .vjr-value--accessor,
+  .vjr-value--hole,
+  .vjr-value--unavailable,
+  .vjr-value--reference,
+  .vjr-ellipsis,
+  .vjr-size,
+  .vjr-limit,
+  .vjr-notice {
+    color: var(--vjr-special);
+  }
+
+  .vjr-size {
+    margin-inline-start: 6px;
+    font-size: 0.85em;
+  }
+
+  .vjr-limit {
+    margin-inline-start: 8px;
+    color: var(--vjr-danger);
+  }
+
+  .vjr-actions {
+    display: inline-flex;
+    gap: 2px;
+    margin-inline-start: 8px;
+    opacity: 0;
+    transition: opacity 120ms ease;
+  }
+
+  .vjr-row:hover > .vjr-actions,
+  .vjr-row[data-active] > .vjr-actions,
+  .vjr-actions:focus-within {
+    opacity: 1;
+  }
+
+  .vjr-action {
+    display: inline-grid;
+    place-items: center;
+    min-inline-size: 28px;
+    min-block-size: 28px;
+    box-sizing: border-box;
+    padding: 4px;
+    border: 1px solid transparent;
+    border-radius: 4px;
+    color: var(--vjr-special);
+    background: transparent;
+    font: inherit;
+    line-height: 1;
+    cursor: pointer;
+  }
+
+  .vjr-action:hover {
+    border-color: var(--vjr-border);
+    background: var(--vjr-background);
+  }
+
+  .vjr-action:focus-visible {
+    outline: 2px solid var(--vjr-focus);
+    outline-offset: 1px;
+  }
+
+  .vjr-action:disabled {
+    cursor: wait;
+    opacity: 0.65;
+  }
+
+  .vjr-action--copied {
+    color: var(--vjr-success);
+  }
+
+  .vjr-action svg {
+    inline-size: 16px;
+    block-size: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+
+  .vjr-notice {
+    padding: 6px 8px;
+    border-block-start: 1px solid var(--vjr-border);
+  }
+
+  .vjr-sr-only {
+    position: absolute;
+    inline-size: 1px;
+    block-size: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  @media (hover: none), (pointer: coarse) {
+    .vjr-actions {
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .vjr-chevron,
+    .vjr-actions {
+      transition: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .vjr-viewer:focus-visible,
+    .vjr-action:focus-visible {
+      outline-color: Highlight;
+    }
+
+    .vjr-row[data-active] {
+      outline: 1px solid Highlight;
+    }
+
+    .vjr-guide {
+      border-color: CanvasText;
+    }
+  }
+}
