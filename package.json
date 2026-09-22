@@ -63,7 +63,9 @@
     "./package.json": "./package.json"
   },
   "files": [
+    ".agents/skills/view-json-react",
     "dist",
+    "llms.txt",
     "README.md",
     "MIGRATION.md",
     "CHANGELOG.md",
@@ -78,10 +80,15 @@
   "publishConfig": {
     "access": "public"
   },
+  "pi": {
+    "skills": [
+      "./.agents/skills"
+    ]
+  },
   "scripts": {
     "audit": "pnpm audit --audit-level low",
     "build": "node scripts/build.mjs && pnpm run size",
-    "build-storybook": "storybook build",
+    "build-storybook": "storybook build && node -e \"require('node:fs').copyFileSync('llms.txt', 'storybook-static/llms.txt')\"",
     "benchmark": "pnpm run build && node --expose-gc scripts/benchmark.mjs",
     "check": "pnpm run lint && pnpm run typecheck && pnpm run test:run && pnpm run build && pnpm run test:package",
     "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",

@@ -49,6 +49,24 @@ export function Inspector() {
 
 `data` is `unknown`: valid JSON works as expected, while values such as `undefined`, `bigint`, `Date`, `RegExp`, `Map`, `Set`, functions, symbols, `NaN`, infinity, `-0`, sparse arrays, repeated references, and cycles have explicit display behavior.
 
+## AI coding agents
+
+The published package includes its complete README, migration guide, TypeScript declarations, [`llms.txt`](./llms.txt), and a portable [Agent Skill](./.agents/skills/view-json-react/SKILL.md). Agents can already inspect the installed package for version-matched guidance; the skill is optional and adds a concise integration workflow for Copilot, Claude Code, Codex, OpenCode, Pi, and other Agent Skills-compatible tools.
+
+Install the skill from the dependency already pinned by your application rather than relying on unversioned model knowledge:
+
+```bash
+npx skills add ./node_modules/view-json-react
+```
+
+Pi users can instead load the bundled skill through the package manifest:
+
+```bash
+pi install ./node_modules/view-json-react -l
+```
+
+The documentation site serves [`/llms.txt`](https://nycruslan.github.io/view-json-react/llms.txt) for retrieval tools and documentation indexes. No MCP server is required: this library exposes static documentation and typed APIs, not a remote service or action interface.
+
 ## Accessibility and keyboard controls
 
 The viewer implements the [WAI-ARIA Tree View pattern](https://www.w3.org/WAI/ARIA/apg/patterns/treeview/) with `tree`, `treeitem`, managed focus, structural metadata, and polite status announcements.

@@ -577,6 +577,7 @@ const JsonViewerImplementation = forwardRef<
   },
 );
 
+/** Accessible, bounded, read-only tree for inspecting JSON and JavaScript values. */
 export const JsonViewer = JsonViewerImplementation as ForwardRefExoticComponent<
   JsonViewerProps & RefAttributes<JsonViewerHandle>
 >;

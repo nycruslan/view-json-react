@@ -29,8 +29,8 @@ pnpm install
 | `pnpm run audit` | Fail on any known dependency advisory |
 | `pnpm run storybook` | Start Storybook dev server on port 6006 |
 | `pnpm run test:run` | Run the unit and component tests once |
-| `pnpm run test:coverage` | Run tests with coverage thresholds |
-| `pnpm run test:package` | Test the packed ESM, CommonJS, types, SSR, CSS, and subpaths |
+| `pnpm run test:coverage` | Run tests and generate coverage reports |
+| `pnpm run test:package` | Test packed modules, types, SSR, CSS, AI docs, and subpaths |
 | `pnpm run typecheck` | Check TypeScript types |
 | `pnpm run lint` | Run ESLint and unused-code/dependency analysis |
 | `pnpm run lint:fix` | Apply safe ESLint fixes |
@@ -66,6 +66,14 @@ Please include:
 - Public exports are limited to the root, `virtual`, `headless`, and `styles.css` subpaths.
 
 Keep traversal bounded, do not invoke property getters, preserve numeric array path segments, and avoid adding runtime dependencies without strong justification.
+
+## Agent-facing documentation
+
+- `AGENTS.md` contains concise repository instructions shared by coding agents.
+- `.agents/skills/view-json-react/SKILL.md` is the portable consumer-integration skill shipped in the npm package.
+- `llms.txt` is copied to the Storybook root and indexes the authoritative Markdown documentation.
+
+Keep the README and TypeScript declarations authoritative. The skill should remain a concise workflow rather than duplicating the full API, and `llms.txt` should link to maintained source documents instead of embedding another copy.
 
 ## Code Style
 

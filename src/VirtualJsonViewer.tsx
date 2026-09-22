@@ -139,6 +139,7 @@ const InternalJsonViewer = JsonViewer as ForwardRefExoticComponent<
   JsonViewerProps & InternalRendererProps & RefAttributes<JsonViewerHandle>
 >;
 
+/** Fixed-row windowed variant for trees with many expanded visible rows. */
 export const VirtualJsonViewer = forwardRef<
   JsonViewerHandle,
   VirtualJsonViewerProps

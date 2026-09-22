@@ -60,11 +60,27 @@ try {
   run('tar', ['-xzf', tarballPath, '-C', temporaryDirectory]);
 
   const nodeModules = path.join(temporaryDirectory, 'node_modules');
+  const installedPackage = path.join(nodeModules, 'view-json-react');
   mkdirSync(nodeModules);
-  renameSync(
-    path.join(temporaryDirectory, 'package'),
-    path.join(nodeModules, 'view-json-react'),
+  renameSync(path.join(temporaryDirectory, 'package'), installedPackage);
+
+  const packageManifest = JSON.parse(
+    readFileSync(path.join(installedPackage, 'package.json'), 'utf8'),
   );
+  if (!packageManifest.pi?.skills?.includes('./.agents/skills')) {
+    throw new Error('The packaged Pi skill manifest is missing or invalid');
+  }
+  const llmsText = readFileSync(path.join(installedPackage, 'llms.txt'), 'utf8');
+  if (!llmsText.startsWith('# view-json-react')) {
+    throw new Error('llms.txt is missing or invalid');
+  }
+  const skillText = readFileSync(
+    path.join(installedPackage, '.agents/skills/view-json-react/SKILL.md'),
+    'utf8',
+  );
+  if (!skillText.startsWith('---\nname: view-json-react\n')) {
+    throw new Error('The packaged Agent Skill is missing or invalid');
+  }
   for (const dependency of ['react', 'react-dom']) {
     symlinkSync(
       path.join(root, 'node_modules', dependency),
@@ -149,7 +165,7 @@ void [JsonViewer, VirtualJsonViewer, toJsonPointer([]), props];
     'tsconfig.json',
   ]);
 
-  const packedRoot = path.join(nodeModules, 'view-json-react', 'dist');
+  const packedRoot = path.join(installedPackage, 'dist');
   for (const file of [
     'view-json-react.esm.js',
     'view-json-react.cjs',
@@ -165,7 +181,7 @@ void [JsonViewer, VirtualJsonViewer, toJsonPointer([]), props];
     }
   }
 
-  console.log('Packed ESM, CommonJS, TypeScript, SSR, CSS, publint, ATTW, and subpath exports passed.');
+  console.log('Packed ESM, CommonJS, TypeScript, SSR, CSS, AI docs, publint, ATTW, and subpath exports passed.');
 } finally {
   rmSync(temporaryDirectory, { recursive: true, force: true });
 }

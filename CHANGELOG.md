@@ -18,6 +18,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Packed-tarball tests for ESM, CommonJS, TypeScript, SSR, CSS, and all public subpaths.
 - A complete v3 migration guide, API reference, keyboard guide, security notes, and large-data Storybook examples.
 - Pull-request quality gates for linting, type checking, tests, builds, dependency audits, and Storybook.
+- Cross-agent repository guidance, a packaged Agent Skill for consumer integrations, and a documentation-site `llms.txt` index.
 
 ### Changed
 - Began the v3 prerelease line as `3.0.0-next.0`.
@@ -26,6 +27,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Upgraded the complete development stack, including React 19.3, TypeScript 6, Vite 8.3, Storybook 10.6, ESLint 10.11, and Size Limit 14.
 - Added separate ESM and CommonJS declaration graphs, with package validation through publint and Are the Types Wrong.
 - Added Knip as a required unused-file, export, and dependency gate; removed the unused `user-event` dependency.
+- Added defaults and behavioral guidance directly to public TypeScript declarations for IDEs and coding agents.
 - Copy operations now report actual asynchronous success or failure and support path copying and redaction.
 - JSON paths now use numeric array segments and keep `rootName` display-only.
 - Replaced mutating lint defaults and install-time builds with explicit check and prepack commands.
@@ -35,6 +37,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Corrected sorted truncation, empty and depth-limited branch semantics, collision-prone row IDs, Unicode string previews, and virtual-scroll focus synchronization.
 - Preserved `__proto__` and truncation-like object keys during safe serialization, normalized invalid limits, and added a total serialization node budget.
 - Release tags now rerun the complete validation and dependency audit before npm staging.
+- Packed-package validation now verifies that agent-facing documentation ships with each version.
 
 ### Security
 - Re-audited the full dependency graph: zero known advisories, zero runtime dependencies, deduplicated lockfile, explicit build-script policy, and a 24-hour package-release quarantine.

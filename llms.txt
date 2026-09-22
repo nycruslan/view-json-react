@@ -1,0 +1,28 @@
+# view-json-react
+
+> A lightweight, accessible, read-only React tree for safely inspecting JSON and JavaScript values, with bounded search, optional virtualization, static CSS, and zero runtime dependencies.
+
+Use the documentation shipped in the installed npm package for exact version-matched behavior. Public package entries are `view-json-react`, `view-json-react/virtual`, `view-json-react/headless`, `view-json-react/styles.css`, and `view-json-react/package.json`. The package supports React 18 and 19.
+
+## Documentation
+
+- [Package guide](https://raw.githubusercontent.com/nycruslan/view-json-react/main/README.md): Installation, usage, accessibility, keyboard controls, search, copying, themes, headless utilities, security, SSR, and API reference.
+- [v2 to v3 migration](https://raw.githubusercontent.com/nycruslan/view-json-react/main/MIGRATION.md): Breaking changes and recommended migration sequence.
+- [Changelog](https://raw.githubusercontent.com/nycruslan/view-json-react/main/CHANGELOG.md): Version history and unreleased changes.
+- [Agent Skill](https://raw.githubusercontent.com/nycruslan/view-json-react/main/.agents/skills/view-json-react/SKILL.md): Concise integration workflow and common correctness constraints for coding agents.
+
+## Examples
+
+- [Storybook](https://nycruslan.github.io/view-json-react/?path=/docs/components-jsonviewer--docs): Interactive standard, search, theme, custom-value, safety, and large-data examples.
+- [Standard viewer stories](https://raw.githubusercontent.com/nycruslan/view-json-react/main/src/JsonViewer.stories.tsx): Source for standard integration examples.
+- [Virtual viewer stories](https://raw.githubusercontent.com/nycruslan/view-json-react/main/src/VirtualJsonViewer.stories.tsx): Source for windowed large-data examples.
+
+## Package and source
+
+- [npm package](https://www.npmjs.com/package/view-json-react): Published versions and installation metadata.
+- [GitHub repository](https://github.com/nycruslan/view-json-react): Source, issues, releases, and contribution history.
+
+## Optional
+
+- [Contributing guide](https://raw.githubusercontent.com/nycruslan/view-json-react/main/CONTRIBUTING.md): Repository setup and validation commands.
+- [Code of Conduct](https://raw.githubusercontent.com/nycruslan/view-json-react/main/CODE_OF_CONDUCT.md): Community participation expectations.
