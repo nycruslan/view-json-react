@@ -1,5 +1,5 @@
 import { displayPointer } from './path.js';
-import type { JsonPath, ValueType } from './types.js';
+import type { JsonPath, KeyComparator, ValueType } from './types.js';
 
 const SPECIAL_VALUE = Symbol('view-json-react.special-value');
 
@@ -23,8 +23,13 @@ export interface CollectionInspection {
   error?: Error;
 }
 
-const toError = (error: unknown): Error =>
-  error instanceof Error ? error : new Error(String(error));
+const toError = (error: unknown): Error => {
+  try {
+    return new Error(error instanceof Error ? error.message : String(error));
+  } catch {
+    return new Error('Unknown error');
+  }
+};
 
 const createSpecialValue = (
   kind: SpecialKind,
@@ -77,18 +82,22 @@ export const classifyValue = (value: unknown): ValueType => {
 export const isExpandableType = (type: ValueType): boolean =>
   type === 'array' || type === 'object';
 
-export const inspectCollection = (
+const inspectCollectionInternal = (
   value: unknown,
-  limit = Number.POSITIVE_INFINITY,
+  limit: number,
+  compareKeys?: KeyComparator,
 ): CollectionInspection => {
   const type = classifyValue(value);
+  const entryLimit = limit === Number.POSITIVE_INFINITY
+    ? limit
+    : Number.isFinite(limit) ? Math.max(0, Math.floor(limit)) : 0;
 
   try {
     if (type === 'array') {
       const array = value as unknown[];
       const lengthDescriptor = Reflect.getOwnPropertyDescriptor(array, 'length');
       const size = Number(lengthDescriptor?.value ?? 0);
-      const count = Math.min(size, Math.max(0, limit));
+      const count = Math.min(size, entryLimit);
       const entries: CollectionEntry[] = [];
 
       for (let index = 0; index < count; index += 1) {
@@ -107,6 +116,7 @@ export const inspectCollection = (
     if (type === 'object') {
       const object = value as object;
       const entries: CollectionEntry[] = [];
+      const sortable: Array<{ key: string; descriptor: PropertyDescriptor }> = [];
       let size = 0;
 
       for (const key of Reflect.ownKeys(object)) {
@@ -114,8 +124,19 @@ export const inspectCollection = (
         const descriptor = Reflect.getOwnPropertyDescriptor(object, key);
         if (!descriptor?.enumerable) continue;
         size += 1;
-        if (entries.length < limit) {
+        if (compareKeys) sortable.push({ key, descriptor });
+        else if (entries.length < entryLimit) {
           entries.push({ key, value: readDescriptorValue(descriptor) });
+        }
+      }
+
+      if (compareKeys) {
+        sortable.sort((a, b) => compareKeys(a.key, b.key));
+        for (const property of sortable.slice(0, entryLimit)) {
+          entries.push({
+            key: property.key,
+            value: readDescriptorValue(property.descriptor),
+          });
         }
       }
 
@@ -138,6 +159,18 @@ export const inspectCollection = (
 
   return { entries: [], size: 0, hasMore: false };
 };
+
+export const inspectCollection = (
+  value: unknown,
+  limit = Number.POSITIVE_INFINITY,
+): CollectionInspection => inspectCollectionInternal(value, limit);
+
+/** @internal */
+export const inspectCollectionWithComparator = (
+  value: unknown,
+  limit: number,
+  compareKeys: KeyComparator,
+): CollectionInspection => inspectCollectionInternal(value, limit, compareKeys);
 
 const safely = (read: () => string, fallback: string): string => {
   try {
@@ -191,10 +224,11 @@ export const formatValue = (
         return `${error.name || 'Error'}: ${error.message}`;
       }, 'Error');
     case 'typed-array':
-      return safely(
-        () => `${(value as object).constructor.name}(${(value as ArrayBufferView).byteLength})`,
-        'TypedArray',
-      );
+      return safely(() => {
+        const view = value as ArrayBufferView & { length?: number };
+        const size = typeof view.length === 'number' ? view.length : view.byteLength;
+        return `${(value as object).constructor.name}(${size})`;
+      }, 'TypedArray');
     case 'accessor':
       return `[${(value as SpecialValue).label || 'Accessor'}]`;
     case 'hole':
@@ -234,6 +268,7 @@ const findAncestor = (
 interface NormalizeOptions {
   maxDepth: number;
   maxBreadth: number;
+  budget: { remaining: number; exhausted: boolean };
   redact?: (
     path: JsonPath,
     value: unknown,
@@ -251,6 +286,11 @@ const normalizeForSerialization = (
   if (redaction === true || typeof redaction === 'string') {
     return typeof redaction === 'string' ? redaction : '[Redacted]';
   }
+  if (options.budget.remaining <= 0) {
+    options.budget.exhausted = true;
+    return '[Maximum node count reached]';
+  }
+  options.budget.remaining -= 1;
 
   const type = classifyValue(value);
   if (type === 'string' || type === 'boolean' || type === 'null') return value;
@@ -276,20 +316,24 @@ const normalizeForSerialization = (
     if (inspected.error) return `[Unavailable: ${inspected.error.message}]`;
 
     if (type === 'array') {
-      const result = inspected.entries.map(entry =>
-        normalizeForSerialization(
+      const result: unknown[] = [];
+      for (const entry of inspected.entries) {
+        result.push(normalizeForSerialization(
           entry.value,
           [...path, entry.key],
           depth + 1,
           nextAncestor,
           options,
-        ),
-      );
-      if (inspected.hasMore) result.push(`[${inspected.size - result.length} more items]`);
+        ));
+        if (options.budget.exhausted) break;
+      }
+      if (!options.budget.exhausted && inspected.hasMore) {
+        result.push(`[${inspected.size - result.length} more items]`);
+      }
       return result;
     }
 
-    const result: Record<string, unknown> = {};
+    const result: Record<string, unknown> = Object.create(null) as Record<string, unknown>;
     for (const entry of inspected.entries) {
       result[String(entry.key)] = normalizeForSerialization(
         entry.value,
@@ -298,9 +342,12 @@ const normalizeForSerialization = (
         nextAncestor,
         options,
       );
+      if (options.budget.exhausted) break;
     }
-    if (inspected.hasMore) {
-      result['…'] = `[${inspected.size - inspected.entries.length} more properties]`;
+    if (!options.budget.exhausted && inspected.hasMore) {
+      let truncationKey = '…';
+      while (Object.hasOwn(result, truncationKey)) truncationKey += '…';
+      result[truncationKey] = `[${inspected.size - inspected.entries.length} more properties]`;
     }
     return result;
   }
@@ -308,14 +355,31 @@ const normalizeForSerialization = (
   return formatValue(value, type);
 };
 
+const boundedInteger = (
+  value: number | undefined,
+  fallback: number,
+  minimum: number,
+): number => {
+  if (value === undefined || !Number.isFinite(value)) return fallback;
+  return Math.max(minimum, Math.floor(value));
+};
+
 export const stringifyValue = (
   value: unknown,
   options: import('./types.js').StringifyOptions = {},
 ): string => {
   const normalized = normalizeForSerialization(value, [], 0, undefined, {
-    maxDepth: options.maxDepth ?? 100,
-    maxBreadth: options.maxBreadth ?? 10_000,
+    maxDepth: boundedInteger(options.maxDepth, 100, 0),
+    maxBreadth: boundedInteger(options.maxBreadth, 10_000, 0),
+    budget: {
+      remaining: boundedInteger(options.maxNodes, 100_000, 0),
+      exhausted: false,
+    },
     redact: options.redact,
   });
-  return JSON.stringify(normalized, null, options.space ?? 2) ?? 'undefined';
+  return JSON.stringify(
+    normalized,
+    null,
+    boundedInteger(options.space, 2, 0),
+  ) ?? 'undefined';
 };

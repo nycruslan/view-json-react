@@ -71,11 +71,19 @@ const normalizeCopyOptions = (
   };
 };
 
-const pointerToId = (prefix: string, pointer: string): string =>
-  `${prefix}-${encodeURIComponent(pointer || 'root').replaceAll('%', '_')}`;
+const pointerToId = (prefix: string, pointer: string): string => {
+  if (!pointer) return `${prefix}-root`;
+  let encoded = '';
+  for (let index = 0; index < pointer.length; index += 1) {
+    encoded += pointer.charCodeAt(index).toString(16).padStart(4, '0');
+  }
+  return `${prefix}-${encoded}`;
+};
 
-const getRowName = (row: TreeRowData, rootName?: string): string =>
-  row.depth === 0 ? rootName ?? 'root' : String(row.key);
+const getRowName = (row: TreeRowData, rootName?: string): string => {
+  if (row.depth === 0) return rootName === '' ? '""' : rootName ?? 'root';
+  return row.key === '' ? '""' : String(row.key);
+};
 
 const JsonViewerImplementation = forwardRef<
   JsonViewerHandle,
@@ -140,13 +148,22 @@ const JsonViewerImplementation = forwardRef<
       [data, maxDepth, maxSearchNodes, maxSearchResults, normalizedSearchQuery, sortKeys],
     );
     const normalTree = useMemo(
-      () => buildVisibleTree(data, {
-        isExpanded: path => currentExpandedPaths.has(toJsonPointer(path)),
+      () => normalizedSearchQuery
+        ? { rows: [], truncated: false }
+        : buildVisibleTree(data, {
+            isExpanded: path => currentExpandedPaths.has(toJsonPointer(path)),
+            maxDepth,
+            maxVisibleNodes: visibleNodeLimit,
+            sortKeys,
+          }),
+      [
+        currentExpandedPaths,
+        data,
         maxDepth,
-        maxVisibleNodes: visibleNodeLimit,
+        normalizedSearchQuery,
         sortKeys,
-      }),
-      [currentExpandedPaths, data, maxDepth, sortKeys, visibleNodeLimit],
+        visibleNodeLimit,
+      ],
     );
     const tree = useMemo(() => {
       if (!normalizedSearchQuery) return normalTree;
@@ -183,6 +200,9 @@ const JsonViewerImplementation = forwardRef<
       () => new Map(tree.rows.map(row => [row.pointer, row])),
       [tree.rows],
     );
+    const resolvedActivePointer = rowByPointer.has(activePointer)
+      ? activePointer
+      : '';
     useEffect(() => {
       if (!rowByPointer.has(activePointer)) setActivePointer('');
     }, [activePointer, rowByPointer]);
@@ -234,12 +254,21 @@ const JsonViewerImplementation = forwardRef<
     ) => {
       const pointer = typeof path === 'string' ? path : toJsonPointer(path);
       const row = rowByPointer.get(pointer);
+      const isCollection = row?.type === 'array' || row?.type === 'object';
+      if (
+        !row
+        || !isCollection
+        || row.error
+        || row.size === 0
+        || (shouldExpand && row.depthLimited)
+        || currentExpandedPaths.has(pointer) === shouldExpand
+      ) return;
       const nextPaths = new Set(currentExpandedPaths);
       if (shouldExpand) nextPaths.add(pointer);
       else nextPaths.delete(pointer);
       commitExpansion(nextPaths, {
-        path: row?.path ?? (typeof path === 'string' ? [] : path),
-        value: row?.value,
+        path: row.path,
+        value: row.value,
         expanded: shouldExpand,
       });
     }, [commitExpansion, currentExpandedPaths, rowByPointer]);
@@ -303,12 +332,14 @@ const JsonViewerImplementation = forwardRef<
     const moveMatch = useCallback((direction: 1 | -1): boolean => {
       const matches = tree.rows.filter(row => searchResult.matches.has(row.pointer));
       if (matches.length === 0) return false;
-      const currentIndex = matches.findIndex(row => row.pointer === activePointer);
+      const currentIndex = matches.findIndex(
+        row => row.pointer === resolvedActivePointer,
+      );
       const nextIndex = currentIndex < 0
         ? direction === 1 ? 0 : matches.length - 1
         : (currentIndex + direction + matches.length) % matches.length;
       return focusPointer(matches[nextIndex].pointer);
-    }, [activePointer, focusPointer, searchResult.matches, tree.rows]);
+    }, [focusPointer, resolvedActivePointer, searchResult.matches, tree.rows]);
 
     const toggleString = useCallback((row: TreeRowData) => {
       setExpandedStrings(current => {
@@ -364,7 +395,7 @@ const JsonViewerImplementation = forwardRef<
 
       const currentIndex = Math.max(
         0,
-        tree.rows.findIndex(row => row.pointer === activePointer),
+        tree.rows.findIndex(row => row.pointer === resolvedActivePointer),
       );
       const currentRow = tree.rows[currentIndex];
       if (!currentRow) return;
@@ -482,7 +513,7 @@ const JsonViewerImplementation = forwardRef<
         key={row.pointer}
         row={row}
         id={pointerToId(idPrefix, row.pointer)}
-        active={row.pointer === activePointer}
+        active={row.pointer === resolvedActivePointer}
         rootName={rootName}
         showObjectSize={showObjectSize}
         copyOptions={{ value: copyOptions.value, path: copyOptions.path }}
@@ -511,7 +542,7 @@ const JsonViewerImplementation = forwardRef<
           role="tree"
           tabIndex={0}
           aria-label={ariaLabel}
-          aria-activedescendant={pointerToId(idPrefix, activePointer)}
+          aria-activedescendant={pointerToId(idPrefix, resolvedActivePointer)}
           className={rootClassName}
           style={style}
           data-theme={theme}
@@ -519,7 +550,7 @@ const JsonViewerImplementation = forwardRef<
         >
           <RowRenderer
             rows={tree.rows}
-            activePointer={activePointer}
+            activePointer={resolvedActivePointer}
             setActivePointer={setActivePointer}
             treeRef={treeRef}
             renderRow={renderRow}

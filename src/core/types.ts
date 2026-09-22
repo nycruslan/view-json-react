@@ -78,6 +78,7 @@ export interface StringifyOptions {
   space?: number;
   maxDepth?: number;
   maxBreadth?: number;
+  maxNodes?: number;
   redact?: (
     path: JsonPath,
     value: unknown,

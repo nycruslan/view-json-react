@@ -31,6 +31,31 @@ describe('JsonViewer', () => {
     expect(screen.getByText('true')).toBeInTheDocument();
   });
 
+  it('uses safe, collision-free row IDs for arbitrary keys', () => {
+    render(<JsonViewer data={{ 'a b': 1, a_20b: 2, '\ud800': 3 }} />);
+    const ids = screen.getAllByRole('treeitem').map(row => row.id);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
+  it('renders empty and depth-limited collections as non-expandable', () => {
+    const { rerender } = render(<JsonViewer data={{}} />);
+    const emptyRoot = screen.getByRole('treeitem', { name: /root, object with 0 items/i });
+    expect(emptyRoot).not.toHaveAttribute('aria-expanded');
+    expect(emptyRoot).toHaveTextContent('{}');
+
+    rerender(<JsonViewer data={{ child: 1 }} maxDepth={0} />);
+    const limitedRoot = screen.getByRole('treeitem', { name: /root, object with 1 item/i });
+    expect(limitedRoot).not.toHaveAttribute('aria-expanded');
+    expect(screen.getByText('Maximum depth reached')).toBeInTheDocument();
+  });
+
+  it('honors a null custom value without rendering the fallback', () => {
+    const { container } = render(
+      <JsonViewer data={1} renderValue={() => null} />,
+    );
+    expect(container.querySelector('.vjr-value')).toBeEmptyDOMElement();
+  });
+
   it('implements tree keyboard navigation and expansion', () => {
     render(<JsonViewer data={{ nested: { value: 1 }, other: 2 }} />);
     const tree = screen.getByRole('tree');
@@ -174,7 +199,7 @@ describe('JsonViewer', () => {
   });
 
   it('collapses and expands long strings without changing the value', () => {
-    render(
+    const { rerender } = render(
       <JsonViewer data={{ message: 'abcdefghij' }} collapseStringsAfterLength={4} />,
     );
     const toggle = screen.getByRole('button', { name: /expand string value of message/i });
@@ -182,6 +207,14 @@ describe('JsonViewer', () => {
     fireEvent.click(toggle);
     expect(screen.getByRole('button', { name: /collapse string value of message/i }))
       .toHaveTextContent('"abcdefghij"');
+
+    rerender(<JsonViewer data={{ emoji: '😀x' }} collapseStringsAfterLength={1} />);
+    expect(screen.getByRole('button', { name: /expand string value of emoji/i }))
+      .toHaveTextContent('"😀"…');
+
+    rerender(<JsonViewer data="complete" collapseStringsAfterLength={0} />);
+    expect(screen.queryByRole('button', { name: /expand string/i })).not.toBeInTheDocument();
+    expect(screen.getByText('"complete"')).toBeInTheDocument();
   });
 
   it('windows large trees while preserving tree semantics', async () => {
@@ -191,11 +224,19 @@ describe('JsonViewer', () => {
     const tree = screen.getByRole('tree');
     expect(screen.getAllByRole('treeitem').length).toBeLessThan(50);
 
-    fireEvent.scroll(tree, { target: { scrollTop: 2_800 } });
+    fireEvent.scroll(tree, { target: { scrollTop: 2_815 } });
+    expect(tree.scrollTop).toBe(2_815);
     expect(tree).toHaveAttribute(
       'aria-activedescendant',
       screen.getByRole('treeitem', { name: /99, number, 99/i }).id,
     );
+
+    fireEvent.keyDown(tree, { key: 'End' });
+    const finalRow = screen.getByRole('treeitem', { name: /999, number, 999/i });
+    expect(tree).toHaveAttribute('aria-activedescendant', finalRow.id);
+    fireEvent.scroll(tree);
+    expect(tree).toHaveAttribute('aria-activedescendant', finalRow.id);
+
     const result = await axe.run(container, {
       rules: { 'color-contrast': { enabled: false } },
     });

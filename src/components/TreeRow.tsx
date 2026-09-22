@@ -41,18 +41,25 @@ const CopyButton = ({
 );
 
 const getNodeName = (row: TreeRowData, rootName?: string): string => {
-  if (row.depth === 0) return rootName ?? 'root';
-  return String(row.key);
+  if (row.depth === 0) return rootName === '' ? '""' : rootName ?? 'root';
+  return row.key === '' ? '""' : String(row.key);
 };
 
 const getNodeDescription = (
   row: TreeRowData,
   rootName: string | undefined,
+  depthLimitedLabel: string,
 ): string => {
   const name = getNodeName(row, rootName);
-  if (row.expandable) {
-    const size = row.size === undefined ? '' : ` with ${row.size} items`;
-    return `${name}, ${row.type}${size}, ${row.expanded ? 'expanded' : 'collapsed'}`;
+  if (row.error) return `${name}, unavailable, ${row.error.message}`;
+  if (row.type === 'array' || row.type === 'object') {
+    const size = row.size === undefined
+      ? ''
+      : ` with ${row.size} ${row.size === 1 ? 'item' : 'items'}`;
+    const state = row.depthLimited
+      ? `, ${depthLimitedLabel}`
+      : row.expandable ? `, ${row.expanded ? 'expanded' : 'collapsed'}` : '';
+    return `${name}, ${row.type}${size}${state}`;
   }
   return `${name}, ${row.type}, ${formatValue(row.value, row.type, row.referencePointer)}`;
 };
@@ -69,13 +76,23 @@ const renderName = (row: TreeRowData, rootName?: string): ReactNode => {
   return <span className="vjr-key">{JSON.stringify(row.key)}</span>;
 };
 
-const renderExpandableValue = (row: TreeRowData): ReactNode => {
-  if (row.error) return <span className="vjr-value--unavailable">[Unavailable: {row.error.message}]</span>;
+const truncateString = (value: string, limit: number): string => {
+  let end = 0;
+  let count = 0;
+  for (const character of value) {
+    if (count >= limit) break;
+    end += character.length;
+    count += 1;
+  }
+  return value.slice(0, end);
+};
+
+const renderCollectionValue = (row: TreeRowData): ReactNode => {
   const brackets = row.type === 'array' ? ['[', ']'] : ['{', '}'];
   return (
     <span className="vjr-collection">
       {brackets[0]}
-      <span className="vjr-ellipsis">…</span>
+      {row.size !== 0 && <span className="vjr-ellipsis">…</span>}
       {brackets[1]}
     </span>
   );
@@ -122,41 +139,49 @@ export const TreeRow = ({
 }: TreeRowProps) => {
   const name = getNodeName(row, rootName);
   const formatted = formatValue(row.value, row.type, row.referencePointer);
-  const stringLimit = Math.max(0, collapseStringsAfterLength ?? 0);
+  const isCollection = row.type === 'array' || row.type === 'object';
+  const requestedStringLimit = collapseStringsAfterLength ?? 0;
+  const stringLimit = Number.isFinite(requestedStringLimit)
+    ? Math.max(0, Math.floor(requestedStringLimit))
+    : 0;
+  const stringPrefix = row.type === 'string' && stringLimit > 0
+    ? truncateString(row.value as string, stringLimit)
+    : '';
   const stringCanCollapse = row.type === 'string'
     && stringLimit > 0
-    && (row.value as string).length > stringLimit;
+    && stringPrefix.length < (row.value as string).length;
   const truncatedString = stringCanCollapse && !stringExpanded
-    ? `${JSON.stringify((row.value as string).slice(0, stringLimit))}…`
+    ? `${JSON.stringify(stringPrefix)}…`
     : formatted;
-  const customValue = row.expandable ? undefined : renderValue?.({
+  const customValue = isCollection ? undefined : renderValue?.({
     value: row.value,
     formatted,
     type: row.type,
     path: row.path,
   });
+  const defaultValue = stringCanCollapse ? (
+    <button
+      type="button"
+      className="vjr-string-toggle"
+      aria-expanded={stringExpanded}
+      aria-label={stringExpanded
+        ? labels.collapseString(name)
+        : labels.expandString(name)}
+      title={formatted}
+      tabIndex={active ? 0 : -1}
+      onClick={event => {
+        event.stopPropagation();
+        onToggleString(row);
+      }}
+    >
+      {truncatedString}
+    </button>
+  ) : formatted;
   const renderedValue = row.error
     ? <span className="vjr-value--unavailable">[Unavailable: {row.error.message}]</span>
-    : row.expandable
-      ? renderExpandableValue(row)
-      : customValue ?? (stringCanCollapse ? (
-          <button
-            type="button"
-            className="vjr-string-toggle"
-            aria-expanded={stringExpanded}
-            aria-label={stringExpanded
-              ? labels.collapseString(name)
-              : labels.expandString(name)}
-            title={formatted}
-            tabIndex={active ? 0 : -1}
-            onClick={event => {
-              event.stopPropagation();
-              onToggleString(row);
-            }}
-          >
-            {truncatedString}
-          </button>
-        ) : formatted);
+    : isCollection
+      ? renderCollectionValue(row)
+      : customValue === undefined ? defaultValue : customValue;
   const isPending = copyState?.pointer === row.pointer && copyState.status === 'pending';
   const copiedKind = copyState?.pointer === row.pointer && copyState.status === 'success'
     ? copyState.kind
@@ -175,7 +200,7 @@ export const TreeRow = ({
       data-active={active || undefined}
       data-search-match={matched || undefined}
       data-depth={row.depth}
-      aria-label={getNodeDescription(row, rootName)}
+      aria-label={getNodeDescription(row, rootName, labels.depthLimited)}
       aria-level={row.depth + 1}
       aria-posinset={row.position}
       aria-setsize={row.setSize}

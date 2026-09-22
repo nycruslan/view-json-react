@@ -5,7 +5,7 @@ import { formatValue } from './value.js';
 
 const searchableText = (row: TreeRow): string => {
   const key = row.key === undefined ? 'root' : String(row.key);
-  const value = row.expandable
+  const value = row.type === 'array' || row.type === 'object'
     ? `${row.type} ${row.size ?? ''}`
     : formatValue(row.value, row.type, row.referencePointer);
   return `${key} ${value}`.toLowerCase();

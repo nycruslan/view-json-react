@@ -190,7 +190,7 @@ Windowing uses dynamic inline positioning styles. The standard viewer itself doe
 />
 ```
 
-Return `undefined` from `renderValue` to use the built-in rendering. All user-facing labels can be replaced through `labels`; layout uses logical CSS properties and supports `dir="rtl"`.
+Return `undefined` from `renderValue` to use the built-in rendering. Control and status labels can be replaced through `labels`; layout uses logical CSS properties and supports `dir="rtl"`.
 
 ## Themes
 
@@ -235,7 +235,7 @@ import {
 } from 'view-json-react/headless';
 ```
 
-Use these functions to build custom renderers or share the viewer's path, search, formatting, and safe-serialization semantics elsewhere.
+Use these functions to build custom renderers or share the viewer's path, search, formatting, and safe-serialization semantics elsewhere. `stringifyValue` accepts `maxDepth`, `maxBreadth`, and `maxNodes` limits; their safe defaults are 100, 10,000, and 100,000.
 
 ## Core props
 
@@ -271,7 +271,7 @@ Standard `div` attributes such as `className`, `style`, `dir`, `aria-label`, and
 - Values are rendered as React text; the package does not use `dangerouslySetInnerHTML`.
 - Enumerable getters and setters are described without invocation.
 - Cycles are represented as references instead of recursing forever.
-- Traversal, search, serialization depth, and breadth are bounded.
+- Traversal and search are bounded; serialization also limits depth, breadth, and total nodes.
 - Revoked or throwing proxies are represented as unavailable where possible. Proxy reflection traps can execute by JavaScript design, so do not treat arbitrary executable proxy objects as inert data.
 - Copy redaction happens before serialization.
 - The package has no runtime dependencies and publishes static CSS instead of injecting a `<style>` element.

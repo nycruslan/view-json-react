@@ -31,6 +31,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Replaced mutating lint defaults and install-time builds with explicit check and prepack commands.
 - Removed the obsolete `fast-uri` override after eliminating its former API Extractor dependency path.
 
+### Fixed
+- Corrected sorted truncation, empty and depth-limited branch semantics, collision-prone row IDs, Unicode string previews, and virtual-scroll focus synchronization.
+- Preserved `__proto__` and truncation-like object keys during safe serialization, normalized invalid limits, and added a total serialization node budget.
+- Release tags now rerun the complete validation and dependency audit before npm staging.
+
 ### Security
 - Re-audited the full dependency graph: zero known advisories, zero runtime dependencies, deduplicated lockfile, explicit build-script policy, and a 24-hour package-release quarantine.
 

@@ -4,6 +4,7 @@ import {
   forwardRef,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 import type {
@@ -40,6 +41,8 @@ const VirtualRows = ({
   const { rowHeight, overscan } = options as VirtualOptions;
   const [scrollTop, setScrollTop] = useState(0);
   const [viewportHeight, setViewportHeight] = useState(400);
+  const activeChangedByScroll = useRef(false);
+  const programmaticScrollTop = useRef<number | undefined>(undefined);
   const activeIndex = Math.max(
     0,
     rows.findIndex(row => row.pointer === activePointer),
@@ -51,13 +54,24 @@ const VirtualRows = ({
     const updateHeight = () => setViewportHeight(element.clientHeight || 400);
     const handleScroll = () => {
       setScrollTop(element.scrollTop);
+      if (programmaticScrollTop.current === element.scrollTop) {
+        programmaticScrollTop.current = undefined;
+        return;
+      }
+      programmaticScrollTop.current = undefined;
       const row = rows[
         Math.min(
           rows.length - 1,
           Math.max(0, Math.floor(element.scrollTop / rowHeight)),
         )
       ];
-      if (row) setActivePointer(row.pointer);
+      if (row) {
+        setActivePointer(current => {
+          if (current === row.pointer) return current;
+          activeChangedByScroll.current = true;
+          return row.pointer;
+        });
+      }
     };
 
     updateHeight();
@@ -76,11 +90,20 @@ const VirtualRows = ({
   useEffect(() => {
     const element = treeRef.current;
     if (!element) return;
+    if (activeChangedByScroll.current) {
+      activeChangedByScroll.current = false;
+      return;
+    }
     const top = activeIndex * rowHeight;
     const bottom = top + rowHeight;
-    if (top < element.scrollTop) element.scrollTop = top;
+    let nextScrollTop: number | undefined;
+    if (top < element.scrollTop) nextScrollTop = top;
     else if (bottom > element.scrollTop + element.clientHeight) {
-      element.scrollTop = bottom - element.clientHeight;
+      nextScrollTop = bottom - element.clientHeight;
+    }
+    if (nextScrollTop !== undefined) {
+      programmaticScrollTop.current = nextScrollTop;
+      element.scrollTop = nextScrollTop;
     }
   }, [activeIndex, rowHeight, treeRef]);
 

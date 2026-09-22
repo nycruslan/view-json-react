@@ -23,5 +23,6 @@ dist-ssr
 *.sln
 *.sw?
 
-# Storybook build output
+# Generated reports and Storybook output
+coverage
 storybook-static

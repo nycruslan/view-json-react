@@ -2,6 +2,7 @@ import { appendPath, toJsonPointer } from './path.js';
 import {
   classifyValue,
   inspectCollection,
+  inspectCollectionWithComparator,
   isExpandableType,
 } from './value.js';
 import type {
@@ -90,22 +91,27 @@ export const buildVisibleTree = (
 
     if (expandable) {
       const remaining = Math.max(0, maxVisibleNodes - rows.length - 1);
-      const inspected = inspectCollection(pending.value, remaining);
+      const inspectEntries = expanded && pending.depth < maxDepth;
+      const comparator = inspectEntries && type === 'object' && options.sortKeys
+        ? options.sortKeys === true ? compareKeys : options.sortKeys
+        : undefined;
+      const inspectionLimit = inspectEntries ? remaining : 0;
+      const inspected = comparator
+        ? inspectCollectionWithComparator(
+            pending.value,
+            inspectionLimit,
+            comparator,
+          )
+        : inspectCollection(pending.value, inspectionLimit);
       size = inspected.size;
       error = inspected.error;
       entries = inspected.entries;
-      if (!error && type === 'object' && options.sortKeys) {
-        const comparator = options.sortKeys === true ? compareKeys : options.sortKeys;
-        entries = [...entries].sort((a, b) =>
-          comparator(String(a.key), String(b.key)),
-        );
-      }
-      if (error) {
+      if (error || size === 0) {
         expanded = false;
         expandable = false;
-      }
-      if (expanded && pending.depth >= maxDepth) {
+      } else if (pending.depth >= maxDepth) {
         expanded = false;
+        expandable = false;
         depthLimited = true;
       }
       if (expanded && inspected.hasMore) truncated = true;
@@ -150,6 +156,12 @@ export const buildVisibleTree = (
         setSize: size ?? entries.length,
         ancestor: nextAncestor,
       });
+    }
+
+    const pendingCapacity = maxVisibleNodes - rows.length;
+    if (stack.length > pendingCapacity) {
+      stack.splice(0, stack.length - pendingCapacity);
+      truncated = true;
     }
   }
 

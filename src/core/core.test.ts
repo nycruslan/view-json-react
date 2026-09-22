@@ -26,6 +26,8 @@ describe('value inspection', () => {
     expect(formatValue(new Date('2024-01-01T00:00:00Z'))).toBe(
       '2024-01-01T00:00:00.000Z',
     );
+    expect(formatValue(new Uint32Array(2))).toBe('Uint32Array(2)');
+    expect(formatValue(new DataView(new ArrayBuffer(8)))).toBe('DataView(8)');
   });
 
   it('does not crash on revoked proxies', () => {
@@ -48,6 +50,25 @@ describe('tree building', () => {
       referencePointer: '',
       expandable: false,
     });
+  });
+
+  it('normalizes errors from throwing reflection traps', () => {
+    const unprintable = Object.create(null) as { [Symbol.toPrimitive]?: () => never };
+    unprintable[Symbol.toPrimitive] = () => {
+      throw new Error('cannot stringify');
+    };
+    const data = new Proxy({}, {
+      ownKeys() {
+        throw unprintable;
+      },
+    });
+
+    const result = buildVisibleTree(data, { isExpanded: () => true });
+    expect(result.rows[0]).toMatchObject({
+      expandable: false,
+      error: { message: 'Unknown error' },
+    });
+    expect(stringifyValue(data)).toBe('"[Unavailable: Unknown error]"');
   });
 
   it('does not invoke property getters', () => {
@@ -85,6 +106,18 @@ describe('tree building', () => {
     });
     expect(result.rows).toHaveLength(3);
     expect(result.truncated).toBe(true);
+
+    const nested = buildVisibleTree(
+      { first: { alpha: 1, beta: 2 }, second: 3 },
+      { isExpanded: () => true, maxVisibleNodes: 4 },
+    );
+    expect(nested.rows.map(row => row.pointer)).toEqual([
+      '',
+      '/first',
+      '/first/alpha',
+      '/first/beta',
+    ]);
+    expect(nested.truncated).toBe(true);
   });
 
   it('collects initial expansion paths by depth', () => {
@@ -98,13 +131,34 @@ describe('tree building', () => {
       maxDepth: 0,
     });
     expect(rootOnly.rows).toHaveLength(1);
-    expect(rootOnly.rows[0].depthLimited).toBe(true);
+    expect(rootOnly.rows[0]).toMatchObject({
+      depthLimited: true,
+      expandable: false,
+      expanded: false,
+    });
 
     const sorted = buildVisibleTree({ zebra: 1, alpha: 2 }, {
       isExpanded: () => true,
       sortKeys: true,
     });
     expect(sorted.rows.map(row => row.key)).toEqual([undefined, 'alpha', 'zebra']);
+
+    const limited = buildVisibleTree({ zebra: 1, alpha: 2, middle: 3 }, {
+      isExpanded: () => true,
+      maxVisibleNodes: 3,
+      sortKeys: true,
+    });
+    expect(limited.rows.map(row => row.key)).toEqual([undefined, 'alpha', 'middle']);
+  });
+
+  it('treats empty collections as leaves', () => {
+    const result = buildVisibleTree({ emptyObject: {}, emptyArray: [] }, {
+      isExpanded: () => true,
+    });
+    expect(result.rows.slice(1)).toEqual([
+      expect.objectContaining({ key: 'emptyObject', size: 0, expandable: false }),
+      expect.objectContaining({ key: 'emptyArray', size: 0, expandable: false }),
+    ]);
   });
 });
 
@@ -151,5 +205,42 @@ describe('safe serialization', () => {
     );
     expect(text).toContain('"token": "[Redacted]"');
     expect(text).not.toContain('secret');
+  });
+
+  it('preserves prototype-like keys and truncation metadata', () => {
+    const data = Object.create(null) as Record<string, unknown>;
+    data.__proto__ = { safe: true };
+    data['…'] = 'original';
+    data.extra = 1;
+
+    const complete = JSON.parse(stringifyValue(data)) as Record<string, unknown>;
+    expect(Object.hasOwn(complete, '__proto__')).toBe(true);
+    expect(complete.__proto__).toEqual({ safe: true });
+
+    const truncated = JSON.parse(stringifyValue(data, { maxBreadth: 2 })) as Record<
+      string,
+      unknown
+    >;
+    expect(truncated['…']).toBe('original');
+    expect(truncated['……']).toBe('[1 more properties]');
+  });
+
+  it('falls back to safe bounds for non-finite serialization options', () => {
+    let data: Record<string, unknown> = { leaf: true };
+    for (let index = 0; index < 105; index += 1) data = { child: data };
+
+    expect(stringifyValue(data, { maxDepth: Number.NaN }))
+      .toContain('[Maximum depth reached]');
+    expect(JSON.parse(stringifyValue({ value: 1 }, { maxBreadth: Number.NaN })))
+      .toEqual({ value: 1 });
+  });
+
+  it('enforces a total serialization node budget', () => {
+    const text = stringifyValue(
+      { first: { value: 1 }, second: { value: 2 } },
+      { maxNodes: 3 },
+    );
+    expect(text).toContain('"second": "[Maximum node count reached]"');
+    expect(text).not.toContain('"value": 2');
   });
 });

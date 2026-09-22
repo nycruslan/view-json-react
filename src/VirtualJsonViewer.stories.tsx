@@ -41,7 +41,7 @@ export const FiftyThousandItems: Story = {
 export const SearchLargeData: Story = {
   args: {
     data: largeArray,
-    searchQuery: '49999',
+    searchQuery: '19999',
     maxSearchNodes: 100_000,
     copy: false,
   },
