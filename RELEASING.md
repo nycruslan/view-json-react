@@ -24,10 +24,10 @@ Releases are published from GitHub Actions through npm Trusted Publishing. The w
 
 ## 2. Trigger trusted staging
 
-Create and push a tag that exactly matches the package version:
+Create and push an annotated tag that exactly matches the package version (use a signed tag when signing is configured):
 
 ```bash
-git tag -s vX.Y.Z -m "vX.Y.Z"
+git tag -a vX.Y.Z -m "vX.Y.Z"
 git push origin vX.Y.Z
 ```
 
