@@ -24,7 +24,10 @@
 
     box-sizing: border-box;
     max-inline-size: 100%;
+    padding: 4px;
     overflow: auto;
+    border: 1px solid var(--vjr-border);
+    border-radius: 6px;
     color: var(--vjr-text);
     background: var(--vjr-background);
     font-family: var(--vjr-font-family);
@@ -89,7 +92,6 @@
     align-items: center;
     inline-size: max-content;
     min-inline-size: 100%;
-    padding-block: 2px;
     padding-inline-end: 4px;
     border-radius: 4px;
     white-space: nowrap;
@@ -104,7 +106,7 @@
     background: var(--vjr-match);
   }
 
-  .vjr-row[data-active] {
+  .vjr-viewer:focus-within .vjr-row[data-active] {
     background: var(--vjr-active);
   }
 
@@ -125,7 +127,7 @@
     flex: none;
     place-items: center;
     inline-size: 20px;
-    block-size: 24px;
+    block-size: 20px;
     color: var(--vjr-special);
     font-family: system-ui, sans-serif;
     font-size: 20px;
@@ -175,17 +177,19 @@
   .vjr-value--regexp,
   .vjr-value--map,
   .vjr-value--set,
-  .vjr-value--error,
   .vjr-value--typed-array,
   .vjr-value--accessor,
   .vjr-value--hole,
-  .vjr-value--unavailable,
   .vjr-value--reference,
   .vjr-ellipsis,
-  .vjr-size,
-  .vjr-limit,
   .vjr-notice {
     color: var(--vjr-special);
+  }
+
+  .vjr-value--error,
+  .vjr-value--unavailable,
+  .vjr-limit {
+    color: var(--vjr-danger);
   }
 
   .vjr-string-toggle {
@@ -203,8 +207,19 @@
   }
 
   .vjr-size {
+    display: inline-grid;
+    min-inline-size: 18px;
+    block-size: 18px;
+    box-sizing: border-box;
+    place-items: center;
     margin-inline-start: 6px;
-    font-size: 0.85em;
+    padding-inline: 4px;
+    border: 1px solid var(--vjr-border);
+    border-radius: 999px;
+    color: var(--vjr-special);
+    background: var(--vjr-hover);
+    font-size: 11px;
+    line-height: 1;
   }
 
   .vjr-limit {
@@ -221,7 +236,7 @@
   }
 
   .vjr-row:hover > .vjr-actions,
-  .vjr-row[data-active] > .vjr-actions,
+  .vjr-viewer:focus-within .vjr-row[data-active] > .vjr-actions,
   .vjr-actions:focus-within {
     opacity: 1;
   }
@@ -314,7 +329,7 @@
       outline-color: Highlight;
     }
 
-    .vjr-row[data-active] {
+    .vjr-viewer:focus-within .vjr-row[data-active] {
       outline: 1px solid Highlight;
     }
 

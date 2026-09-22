@@ -173,15 +173,30 @@ export const collectDefaultExpandedPaths = (
   depth: number,
   maxVisibleNodes = 10_000,
 ): Set<string> => {
-  if (depth <= 0) return new Set();
+  if (depth <= 0 || Number.isNaN(depth)) return new Set();
+
+  if (!Number.isFinite(depth)) {
+    const result = buildVisibleTree(data, {
+      isExpanded: () => true,
+      maxVisibleNodes,
+    });
+    return new Set(
+      result.rows
+        .filter(row => row.expandable && row.expanded)
+        .map(row => row.pointer),
+    );
+  }
+
+  const expansionDepth = Math.ceil(depth);
   const result = buildVisibleTree(data, {
-    isExpanded: (_path, nodeDepth) => nodeDepth < depth,
+    isExpanded: (_path, nodeDepth) => nodeDepth < expansionDepth,
+    maxDepth: expansionDepth - 1,
     maxVisibleNodes,
   });
 
   return new Set(
     result.rows
-      .filter(row => row.expandable && row.expanded)
+      .filter(row => (row.expandable && row.expanded) || row.depthLimited)
       .map(row => row.pointer),
   );
 };

@@ -122,6 +122,28 @@ describe('JsonViewer', () => {
     expect(screen.getByRole('status')).toHaveTextContent('Could not copy');
   });
 
+  it('keeps the latest copy status when writes resolve out of order', async () => {
+    const resolvers = new Map<string, () => void>();
+    installClipboard(vi.fn((text: string) => new Promise<void>(resolve => {
+      resolvers.set(text, resolve);
+    })));
+    const onCopy = vi.fn();
+    render(<JsonViewer data={{ first: 1, second: 2 }} onCopy={onCopy} />);
+
+    const first = screen.getByRole('button', { name: 'Copy value of first' });
+    const second = screen.getByRole('button', { name: 'Copy value of second' });
+    fireEvent.click(first);
+    fireEvent.click(second);
+
+    act(() => resolvers.get('2')?.());
+    await waitFor(() => expect(second).toHaveClass('vjr-action--copied'));
+
+    act(() => resolvers.get('1')?.());
+    await waitFor(() => expect(onCopy).toHaveBeenCalledTimes(2));
+    expect(second).toHaveClass('vjr-action--copied');
+    expect(first).not.toHaveClass('vjr-action--copied');
+  });
+
   it('copies typed paths without including the display-only root name', async () => {
     const writeText = installClipboard();
     const onCopy = vi.fn();

@@ -192,6 +192,7 @@ const JsonViewerImplementation = forwardRef<
       () => new Set(),
     );
     const treeRef = useRef<HTMLDivElement>(null);
+    const copyOperation = useRef(0);
     const typeahead = useRef('');
     const typeaheadTimer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
     const idPrefix = `vjr-${useId().replaceAll(':', '')}`;
@@ -277,6 +278,8 @@ const JsonViewerImplementation = forwardRef<
       row: TreeRowData,
       kind: 'value' | 'path',
     ) => {
+      const operation = copyOperation.current + 1;
+      copyOperation.current = operation;
       setCopyState({ pointer: row.pointer, kind, status: 'pending' });
       setStatusMessage('');
       let text = '';
@@ -303,12 +306,16 @@ const JsonViewerImplementation = forwardRef<
           throw new Error('The Clipboard API is not available');
         }
         await navigator.clipboard.writeText(text);
-        setCopyState({ pointer: row.pointer, kind, status: 'success' });
-        setStatusMessage(labels.copied);
+        if (copyOperation.current === operation) {
+          setCopyState({ pointer: row.pointer, kind, status: 'success' });
+          setStatusMessage(labels.copied);
+        }
       } catch (caughtError) {
         error = caughtError;
-        setCopyState({ pointer: row.pointer, kind, status: 'error' });
-        setStatusMessage(labels.copyFailed);
+        if (copyOperation.current === operation) {
+          setCopyState({ pointer: row.pointer, kind, status: 'error' });
+          setStatusMessage(labels.copyFailed);
+        }
       }
 
       const result: CopyResult = {

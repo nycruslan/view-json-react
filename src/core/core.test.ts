@@ -120,9 +120,19 @@ describe('tree building', () => {
     expect(nested.truncated).toBe(true);
   });
 
-  it('collects initial expansion paths by depth', () => {
-    const paths = collectDefaultExpandedPaths({ nested: { value: 1 } }, 2);
-    expect([...paths]).toEqual(['', '/nested']);
+  it('collects initial expansion paths by depth without inspecting deeper nodes', () => {
+    let childInspections = 0;
+    const child = new Proxy({}, {
+      ownKeys: () => {
+        childInspections += 1;
+        return [];
+      },
+    });
+
+    expect([...collectDefaultExpandedPaths({ nested: { value: 1 } }, 2)])
+      .toEqual(['', '/nested']);
+    expect([...collectDefaultExpandedPaths([child], 1)]).toEqual(['']);
+    expect(childInspections).toBe(0);
   });
 
   it('supports root-only depth limits and deterministic key sorting', () => {

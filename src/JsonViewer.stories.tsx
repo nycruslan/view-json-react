@@ -102,21 +102,46 @@ export const LongStrings: Story = {
 };
 
 const SearchDemo = () => {
-  const [query, setQuery] = useState('ada');
+  const [query, setQuery] = useState('Ada Lovelace');
+  const [matchCount, setMatchCount] = useState(0);
   return (
-    <div>
-      <label style={{ display: 'grid', gap: 6, marginBlockEnd: 12 }}>
-        Search JSON
-        <input
-          value={query}
-          onChange={event => setQuery(event.target.value)}
-          style={{ maxWidth: 320, padding: 8 }}
-        />
-      </label>
+    <div style={{ color: '#24292f', fontFamily: 'system-ui, sans-serif' }}>
+      <div style={{ maxWidth: 320, marginBlockEnd: 16 }}>
+        <label htmlFor="json-search" style={{ display: 'grid', gap: 6, fontWeight: 600 }}>
+          Search JSON
+          <input
+            id="json-search"
+            type="search"
+            value={query}
+            onChange={event => setQuery(event.target.value)}
+            aria-describedby="json-search-count"
+            style={{
+              boxSizing: 'border-box',
+              inlineSize: '100%',
+              minBlockSize: 36,
+              padding: '6px 10px',
+              border: '1px solid #afb8c1',
+              borderRadius: 6,
+              color: 'inherit',
+              background: '#fff',
+              font: 'inherit',
+              fontWeight: 400,
+            }}
+          />
+        </label>
+        <output
+          id="json-search-count"
+          aria-live="polite"
+          style={{ display: 'block', marginBlockStart: 6, color: '#57606a', fontSize: 13 }}
+        >
+          {matchCount} {matchCount === 1 ? 'match' : 'matches'}
+        </output>
+      </div>
       <JsonViewer
         data={sampleData}
         searchQuery={query}
         copy={{ value: true, path: true }}
+        onSearchMatchCount={setMatchCount}
       />
     </div>
   );
@@ -145,6 +170,13 @@ export const JavaScriptValues: Story = {
       regexp: /json/giu,
       map: new Map([['role', 'admin']]),
       set: new Set(['read', 'write']),
+      error: new TypeError('Request failed'),
+      typedArray: new Uint16Array([7, 11, 42]),
+      symbol: Symbol('private'),
+      function: function refresh() {},
+      blockedObject: new Proxy({}, {
+        ownKeys: () => { throw new Error('Inspection blocked'); },
+      }),
       emptySlot: [, 'present'],
     };
     data.self = data;
@@ -158,7 +190,7 @@ export const JavaScriptValues: Story = {
     controls: { disable: true },
     docs: {
       description: {
-        story: 'Non-JSON values, sparse arrays, accessors, and cycles are represented explicitly without crashing.',
+        story: 'Non-JSON values, sparse arrays, accessors, cycles, and reflection failures are represented explicitly without crashing.',
       },
     },
   },
