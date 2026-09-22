@@ -1,0 +1,62 @@
+name: Bug report
+description: Report a reproducible problem in view-json-react
+title: "[Bug]: "
+labels:
+  - bug
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for the report. For security issues, stop here and use private vulnerability reporting instead.
+  - type: input
+    id: package-version
+    attributes:
+      label: Package version
+      description: The exact installed view-json-react version.
+      placeholder: 3.0.0-next.0
+    validations:
+      required: true
+  - type: input
+    id: react-version
+    attributes:
+      label: React and React DOM versions
+      placeholder: react@19.3.0, react-dom@19.3.0
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Runtime and browser
+      description: Include framework, Node.js version for SSR, browser, and assistive technology when relevant.
+      placeholder: Next.js 16, Node.js 24, Chrome 140, VoiceOver
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Minimal reproduction
+      description: Link a small repository or sandbox, or paste the smallest code sample that reproduces the issue.
+    validations:
+      required: true
+  - type: textarea
+    id: actual
+    attributes:
+      label: Observed behavior
+      description: Include errors, accessibility output, screenshots, or performance measurements where useful.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I searched existing issues and the migration guide.
+          required: true
+        - label: This report does not contain secrets or a security vulnerability.
+          required: true

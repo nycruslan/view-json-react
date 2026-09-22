@@ -15,6 +15,7 @@ if (!(entryName in entries)) {
 
 export default defineConfig({
   plugins: [react()],
+  publicDir: false,
   build: {
     lib: {
       entry: path.resolve(import.meta.dirname, entries[entryName]),

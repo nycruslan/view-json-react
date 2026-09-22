@@ -5,7 +5,7 @@
   "engines": {
     "node": ">=18"
   },
-  "description": "A lightweight, accessible React tree for safely inspecting JSON and JavaScript values",
+  "description": "Accessible, dependency-free React JSON tree viewer with search, safe inspection, and virtualized large-data support.",
   "type": "module",
   "main": "./dist/view-json-react.cjs",
   "module": "./dist/view-json-react.esm.js",
@@ -67,6 +67,8 @@
     "dist",
     "llms.txt",
     "README.md",
+    "SECURITY.md",
+    "RELEASING.md",
     "MIGRATION.md",
     "CHANGELOG.md",
     "CONTRIBUTING.md",
@@ -78,7 +80,8 @@
     "url": "https://github.com/sponsors/nycruslan"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
   },
   "pi": {
     "skills": [
@@ -88,9 +91,10 @@
   "scripts": {
     "audit": "pnpm audit --audit-level low",
     "build": "node scripts/build.mjs && pnpm run size",
-    "build-storybook": "storybook build && node -e \"require('node:fs').copyFileSync('llms.txt', 'storybook-static/llms.txt')\"",
+    "build-storybook": "storybook build && node -e \"require('node:fs').copyFileSync('llms.txt', 'storybook-static/llms.txt')\" && node scripts/test-storybook.mjs",
     "benchmark": "pnpm run build && node --expose-gc scripts/benchmark.mjs",
-    "check": "pnpm run lint && pnpm run typecheck && pnpm run test:run && pnpm run build && pnpm run test:package",
+    "check": "pnpm run lint && pnpm run typecheck && pnpm run test:coverage && pnpm run build && pnpm run test:package",
+    "release:check": "pnpm run check && pnpm run build-storybook && pnpm audit --audit-level low && npm pack --dry-run --ignore-scripts",
     "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true })\"",
     "lint": "eslint . && knip",
     "lint:fix": "eslint . --fix",
@@ -143,26 +147,27 @@
   "keywords": [
     "json",
     "react",
+    "typescript",
     "json viewer",
-    "json visualizer",
-    "react component",
-    "data visualization",
-    "collapsible json",
-    "expandable json",
-    "json tree view",
+    "react json viewer",
+    "json tree",
+    "react json tree",
+    "object viewer",
+    "object inspector",
+    "javascript inspector",
     "json explorer",
-    "json inspector",
-    "interactive json",
-    "accessible",
-    "aria tree",
-    "virtualized",
-    "development tool",
-    "web development",
-    "frontend",
-    "UI component",
-    "code visualization",
     "json formatter",
-    "react library"
+    "collapsible json",
+    "accessible",
+    "accessibility",
+    "wai-aria",
+    "virtualized",
+    "virtualization",
+    "zero dependency",
+    "developer tools",
+    "react component",
+    "ssr",
+    "csp"
   ],
   "size-limit": [
     {

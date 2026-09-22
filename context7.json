@@ -1,0 +1,34 @@
+{
+  "$schema": "https://context7.com/schema/context7.json",
+  "projectTitle": "view-json-react",
+  "description": "Accessible, dependency-free React JSON tree viewer with bounded safe inspection, search, clipboard controls, and optional virtualization.",
+  "branch": "main",
+  "folders": [
+    ".agents/skills"
+  ],
+  "excludeFolders": [
+    "dist",
+    "storybook-static",
+    "coverage"
+  ],
+  "excludeFiles": [
+    "AGENTS.md",
+    "CHANGELOG.md",
+    "CODE_OF_CONDUCT.md",
+    "CONTRIBUTING.md",
+    "RELEASING.md",
+    "SECURITY.md"
+  ],
+  "rules": [
+    "Import JsonViewer from view-json-react, VirtualJsonViewer from view-json-react/virtual, and headless utilities from view-json-react/headless.",
+    "Import view-json-react/styles.css once; the package does not inject runtime styles.",
+    "Treat the viewer as read-only and pass untrusted or non-JSON values through its bounded inspection APIs rather than invoking accessors.",
+    "Preserve typed paths: object keys are strings, array indexes are numbers, and rootName is display-only.",
+    "Use the virtual entry only for large expanded datasets so ordinary consumers do not pay for windowing code."
+  ],
+  "previousVersions": [
+    {
+      "tag": "v2.1.1"
+    }
+  ]
+}

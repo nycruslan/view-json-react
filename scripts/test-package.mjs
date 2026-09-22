@@ -2,6 +2,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  readdirSync,
   renameSync,
   rmSync,
   symlinkSync,
@@ -13,6 +14,19 @@ import process from 'node:process';
 
 const root = path.resolve(import.meta.dirname, '..');
 const temporaryDirectory = mkdtempSync(path.join(root, '.package-test-'));
+
+const collectRelativeFiles = (directory, prefix = '') => readdirSync(
+  directory,
+  { withFileTypes: true },
+).flatMap(entry => {
+  const relativePath = path.posix.join(prefix, entry.name);
+  return entry.isDirectory()
+    ? collectRelativeFiles(path.join(directory, entry.name), relativePath)
+    : [relativePath];
+});
+const publicBuildLeaks = new Set(
+  collectRelativeFiles(path.join(root, 'public')).map(file => `dist/${file}`),
+);
 
 const run = (command, args, options = {}) => {
   const result = spawnSync(command, args, {
@@ -67,6 +81,46 @@ try {
   const packageManifest = JSON.parse(
     readFileSync(path.join(installedPackage, 'package.json'), 'utf8'),
   );
+  const packedPaths = new Set(packResult.files.map(file => file.path));
+  for (const expectedPath of [
+    '.agents/skills/view-json-react/SKILL.md',
+    'llms.txt',
+    'README.md',
+    'SECURITY.md',
+    'RELEASING.md',
+    'MIGRATION.md',
+    'LICENSE',
+    'package.json',
+  ]) {
+    if (!packedPaths.has(expectedPath)) {
+      throw new Error(`The package is missing ${expectedPath}`);
+    }
+  }
+  for (const packedPath of packedPaths) {
+    if (
+      /^(?:src|scripts|public|docs|coverage|storybook-static)\//u.test(packedPath)
+      || publicBuildLeaks.has(packedPath)
+    ) {
+      throw new Error(`The package contains repository-only file ${packedPath}`);
+    }
+  }
+  if (Object.keys(packageManifest.dependencies ?? {}).length !== 0) {
+    throw new Error('The published package must not have runtime dependencies');
+  }
+  if (packageManifest.publishConfig?.registry !== 'https://registry.npmjs.org/') {
+    throw new Error('The package must publish only to the npm public registry');
+  }
+  if (!packageManifest.description?.includes('React JSON tree viewer')) {
+    throw new Error('The package description is missing its primary search phrase');
+  }
+  if (!packageManifest.keywords?.includes('react json viewer')) {
+    throw new Error('The package keywords are missing the primary search phrase');
+  }
+  const publicEntries = Object.keys(packageManifest.exports ?? {}).sort();
+  const expectedEntries = ['.', './headless', './package.json', './styles.css', './virtual'];
+  if (JSON.stringify(publicEntries) !== JSON.stringify(expectedEntries)) {
+    throw new Error(`Unexpected public entries: ${publicEntries.join(', ')}`);
+  }
   if (!packageManifest.pi?.skills?.includes('./.agents/skills')) {
     throw new Error('The packaged Pi skill manifest is missing or invalid');
   }

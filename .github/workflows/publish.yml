@@ -45,12 +45,7 @@ jobs:
           node -e "const version=require('./package.json').version; if (process.env.GITHUB_REF_NAME !== 'v'+version) { throw new Error('Tag must be v'+version) }"
 
       - name: Validate release
-        run: |
-          pnpm check
-          pnpm run audit
-
-      - name: Inspect package
-        run: npm pack --dry-run --ignore-scripts
+        run: pnpm release:check
 
       - name: Stage package on npm
         run: |

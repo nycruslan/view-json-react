@@ -1,0 +1,35 @@
+name: Usage question
+description: Ask for help integrating a documented public API
+title: "[Question]: "
+labels:
+  - question
+body:
+  - type: input
+    id: package-version
+    attributes:
+      label: Package version
+      placeholder: 3.0.0-next.0
+    validations:
+      required: true
+  - type: textarea
+    id: goal
+    attributes:
+      label: What are you trying to build?
+    validations:
+      required: true
+  - type: textarea
+    id: attempt
+    attributes:
+      label: What have you tried?
+      description: Include a minimal code sample and any relevant framework constraints.
+    validations:
+      required: true
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checks
+      options:
+        - label: I reviewed the README, live documentation, and migration guide.
+          required: true
+        - label: This question does not contain secrets or a security vulnerability.
+          required: true

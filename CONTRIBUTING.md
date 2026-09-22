@@ -19,7 +19,7 @@ combination.
 ```bash
 git clone https://github.com/nycruslan/view-json-react.git
 cd view-json-react
-pnpm install
+pnpm install --frozen-lockfile
 ```
 
 ## Common Commands
@@ -37,7 +37,8 @@ pnpm install
 | `pnpm run lint:unused` | Run Knip by itself |
 | `pnpm run build` | Build all entries, declarations, CSS, and size budgets |
 | `pnpm run benchmark` | Build and run the reproducible SSR benchmark |
-| `pnpm run check` | Run lint, types, tests, builds, size limits, and packed-package validation |
+| `pnpm run check` | Run lint, types, coverage floors, builds, size limits, and packed-package validation |
+| `pnpm run release:check` | Add Storybook discovery checks, dependency audit, and a script-free package inspection |
 
 ## Pull Request Guidelines
 
@@ -72,6 +73,7 @@ Keep traversal bounded, do not invoke property getters, preserve numeric array p
 - `AGENTS.md` contains concise repository instructions shared by coding agents.
 - `.agents/skills/view-json-react/SKILL.md` is the portable consumer-integration skill shipped in the npm package.
 - `llms.txt` is copied to the Storybook root and indexes the authoritative Markdown documentation.
+- `context7.json` limits hosted AI indexing to maintained docs and records package-specific rules.
 
 Keep the README and TypeScript declarations authoritative. The skill should remain a concise workflow rather than duplicating the full API, and `llms.txt` should link to maintained source documents instead of embedding another copy.
 

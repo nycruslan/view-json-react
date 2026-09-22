@@ -3,9 +3,10 @@
 [![npm version](https://img.shields.io/npm/v/view-json-react.svg)](https://www.npmjs.com/package/view-json-react)
 [![npm downloads](https://img.shields.io/npm/dw/view-json-react.svg)](https://www.npmjs.com/package/view-json-react)
 [![bundle size](https://img.shields.io/bundlephobia/minzip/view-json-react)](https://bundlephobia.com/package/view-json-react)
+[![CI](https://github.com/nycruslan/view-json-react/actions/workflows/ci.yml/badge.svg)](https://github.com/nycruslan/view-json-react/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/view-json-react.svg)](./LICENSE)
 
-A small, accessible, read-only React tree for inspecting JSON and JavaScript values.
+A small, accessible, read-only React JSON tree viewer for inspecting JSON and JavaScript values.
 
 - Genuine WAI-ARIA tree navigation
 - Safe handling of cycles, accessors, sparse arrays, and non-JSON values
@@ -17,7 +18,11 @@ A small, accessible, read-only React tree for inspecting JSON and JavaScript val
 - ESM, CommonJS, SSR, and React Server Component boundaries
 - Zero runtime dependencies; React 18 and 19 supported
 
-**[Live Storybook](https://nycruslan.github.io/view-json-react/?path=/docs/components-jsonviewer--docs)**
+Unlike editor-oriented JSON components, `view-json-react` deliberately omits mutation, schema, fetching, persistence, and runtime style injection. The standard entry stays compact, while large expanded datasets can opt into a separate virtualized entry.
+
+**[Explore the live examples and API documentation](https://nycruslan.github.io/view-json-react/?path=/docs/components-jsonviewer--docs)**
+
+[![An expanded view-json-react tree showing nested user, role, profile, and metrics data](https://raw.githubusercontent.com/nycruslan/view-json-react/main/docs/view-json-react.png)](https://nycruslan.github.io/view-json-react/?path=/story/components-jsonviewer--fully-expanded)
 
 ## Install
 
@@ -65,7 +70,7 @@ Pi users can instead load the bundled skill through the package manifest:
 pi install ./node_modules/view-json-react -l
 ```
 
-The documentation site serves [`/llms.txt`](https://nycruslan.github.io/view-json-react/llms.txt) for retrieval tools and documentation indexes. No MCP server is required: this library exposes static documentation and typed APIs, not a remote service or action interface.
+The documentation site serves [`/llms.txt`](https://nycruslan.github.io/view-json-react/llms.txt) for retrieval tools and documentation indexes, and the repository includes `context7.json` for focused, version-aware Context7 indexing. No MCP server is required: this library exposes static documentation and typed APIs, not a remote service or action interface.
 
 ## Accessibility and keyboard controls
 
@@ -310,11 +315,13 @@ Both UI entries carry a `"use client"` boundary and can be server-rendered witho
 
 Packed ESM, CommonJS, TypeScript, SSR, CSS, and subpath exports are tested in CI. publint and Are the Types Wrong validate both ESM and CommonJS declaration graphs.
 
-## Migration, contributing, and license
+## Project resources
 
 - [Migrate from v2](./MIGRATION.md)
-- [Contributing](./CONTRIBUTING.md)
 - [Changelog](./CHANGELOG.md)
+- [Security policy](./SECURITY.md)
+- [Contributing](./CONTRIBUTING.md)
+- [Release process](./RELEASING.md)
 - [Code of Conduct](./CODE_OF_CONDUCT.md)
 
 MIT © Ruslan Shulga.

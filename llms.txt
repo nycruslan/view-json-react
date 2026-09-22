@@ -1,6 +1,6 @@
 # view-json-react
 
-> A lightweight, accessible, read-only React tree for safely inspecting JSON and JavaScript values, with bounded search, optional virtualization, static CSS, and zero runtime dependencies.
+> An accessible, dependency-free React JSON tree viewer for safely inspecting JSON and JavaScript values, with bounded search, optional virtualization, static CSS, and SSR support.
 
 Use the documentation shipped in the installed npm package for exact version-matched behavior. Public package entries are `view-json-react`, `view-json-react/virtual`, `view-json-react/headless`, `view-json-react/styles.css`, and `view-json-react/package.json`. The package supports React 18 and 19.
 
@@ -10,6 +10,7 @@ Use the documentation shipped in the installed npm package for exact version-mat
 - [v2 to v3 migration](https://raw.githubusercontent.com/nycruslan/view-json-react/main/MIGRATION.md): Breaking changes and recommended migration sequence.
 - [Changelog](https://raw.githubusercontent.com/nycruslan/view-json-react/main/CHANGELOG.md): Version history and unreleased changes.
 - [Agent Skill](https://raw.githubusercontent.com/nycruslan/view-json-react/main/.agents/skills/view-json-react/SKILL.md): Concise integration workflow and common correctness constraints for coding agents.
+- [Security policy](https://raw.githubusercontent.com/nycruslan/view-json-react/main/SECURITY.md): Supported releases, private vulnerability reporting, and security scope.
 
 ## Examples
 
@@ -25,4 +26,5 @@ Use the documentation shipped in the installed npm package for exact version-mat
 ## Optional
 
 - [Contributing guide](https://raw.githubusercontent.com/nycruslan/view-json-react/main/CONTRIBUTING.md): Repository setup and validation commands.
+- [Release process](https://raw.githubusercontent.com/nycruslan/view-json-react/main/RELEASING.md): Trusted staging, manual approval, provenance, and recovery procedure.
 - [Code of Conduct](https://raw.githubusercontent.com/nycruslan/view-json-react/main/CODE_OF_CONDUCT.md): Community participation expectations.
