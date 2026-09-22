@@ -6,6 +6,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 
 ## [Unreleased]
 
+## [3.0.0] - 2026-09-22
+
 ### Added
 - A tested headless data model with safe traversal, cycle detection, JSON Pointer paths, value formatting, redaction, and serialization guards.
 - A WAI-ARIA tree with complete arrow-key navigation, type-ahead, controlled expansion, imperative controls, and accessible copy feedback.
@@ -19,7 +21,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - A complete v3 migration guide, API reference, keyboard guide, security notes, and large-data Storybook examples.
 - Pull-request quality gates for linting, type checking, tests, builds, dependency audits, and Storybook.
 - Cross-agent repository guidance, a packaged Agent Skill for consumer integrations, and a documentation-site `llms.txt` index.
-- Context7 indexing configuration, Storybook SEO metadata, a sitemap, social-preview assets, a security policy, and a documented trusted release procedure.
+- Context7 indexing configuration, Storybook SEO metadata, social-preview assets, a security policy, and a documented trusted release procedure.
 - Enforced coverage floors and a Node.js 18 consumer job covering ESM, CommonJS, headless, virtual, and SSR entry points.
 
 ### Changed
@@ -44,7 +46,6 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Packed-package validation now verifies that agent-facing documentation ships with each version.
 - Initial depth expansion no longer reflects into descendants deeper than the requested expansion depth.
 - Overlapping clipboard writes no longer let an older result replace the latest row's copy status.
-- Storybook discovery files no longer leak into the library build or published `dist` directory.
 
 ### Security
 - Re-audited the full dependency graph: zero known advisories, zero runtime dependencies, deduplicated lockfile, explicit build-script policy, and a 24-hour package-release quarantine.
@@ -156,7 +157,8 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 - Light theme
 - TypeScript support
 
-[Unreleased]: https://github.com/nycruslan/view-json-react/compare/v2.1.3...HEAD
+[Unreleased]: https://github.com/nycruslan/view-json-react/compare/v3.0.0...HEAD
+[3.0.0]: https://github.com/nycruslan/view-json-react/compare/v2.1.3...v3.0.0
 [2.1.3]: https://github.com/nycruslan/view-json-react/compare/v2.1.2...v2.1.3
 [2.1.2]: https://github.com/nycruslan/view-json-react/compare/v2.1.1...v2.1.2
 [2.1.1]: https://github.com/nycruslan/view-json-react/compare/v2.1.0...v2.1.1

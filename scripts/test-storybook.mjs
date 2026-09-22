@@ -4,8 +4,6 @@ import path from 'node:path';
 const output = path.resolve(import.meta.dirname, '../storybook-static');
 for (const relativePath of [
   'llms.txt',
-  'robots.txt',
-  'sitemap.xml',
   'assets/view-json-react.png',
   'assets/social-preview.jpg',
 ]) {
@@ -27,4 +25,4 @@ for (const expected of [
   }
 }
 
-console.log('Storybook SEO, social preview, sitemap, and AI discovery assets passed.');
+console.log('Storybook SEO, social preview, and AI discovery assets passed.');

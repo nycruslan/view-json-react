@@ -64,6 +64,7 @@ Do not import the virtual entry merely because the input object is large. Collap
 - Clipboard results are asynchronous; use the `success` and `error` fields from `onCopy`.
 - `renderValue` customizes leaves. Return `undefined` for built-in rendering; returning `null` intentionally renders nothing.
 - Importing the stylesheet is required for built-in presentation. The standard viewer does not inject runtime styles.
+- In Next.js App Router, import CSS from the root layout; only serializable `data` can cross a Server Component boundary, so callbacks and executable values belong in a Client Component.
 - Use the documented safety limits instead of disabling bounds for untrusted or very large values.
 
 ## Large-data and security choices

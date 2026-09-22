@@ -2,7 +2,7 @@
 
 ## Supported releases
 
-Security fixes are applied to the latest published release and the active v3 prerelease line. Older release lines may not receive fixes. Check the [npm package](https://www.npmjs.com/package/view-json-react) for the latest installable version.
+Security fixes are applied to the latest published release. Older release lines may not receive fixes. Check the [npm package](https://www.npmjs.com/package/view-json-react) for the latest installable version.
 
 ## Reporting a vulnerability
 

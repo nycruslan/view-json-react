@@ -64,8 +64,8 @@ jobs:
 
       - name: Test React 18
         run: |
-          pnpm test:run
-          pnpm build
+          node node_modules/vitest/vitest.mjs run
+          node scripts/build.mjs
 
   node-18-consumer:
     runs-on: ubuntu-latest

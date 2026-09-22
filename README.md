@@ -304,6 +304,22 @@ Standard `div` attributes such as `className`, `style`, `dir`, `aria-label`, and
 
 Both UI entries carry a `"use client"` boundary and can be server-rendered without accessing `window`, `document`, or `navigator` during render. Import the stylesheet through your framework's supported global-CSS entry point. The headless entry has no React dependency.
 
+In a Next.js App Router project, import the stylesheet from the root layout and render the viewer from a Server Component with serializable data:
+
+```tsx
+// app/layout.tsx
+import 'view-json-react/styles.css';
+
+// app/page.tsx
+import { JsonViewer } from 'view-json-react';
+
+export default function Page() {
+  return <JsonViewer data={{ status: 'ok' }} />;
+}
+```
+
+State, callbacks, functions, proxies, and other non-serializable values must originate inside a Client Component because they cannot cross the React Server Component boundary. Headless utilities can be imported directly in Server Components and route handlers.
+
 ## Package entries and size budgets
 
 | Entry | Purpose | Current budget |

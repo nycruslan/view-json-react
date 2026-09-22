@@ -1,8 +1,0 @@
-blank_issues_enabled: false
-contact_links:
-  - name: Security vulnerability
-    url: https://github.com/nycruslan/view-json-react/security/advisories/new
-    about: Report vulnerabilities privately; do not open a public issue.
-  - name: Documentation and live examples
-    url: https://nycruslan.github.io/view-json-react/?path=/docs/components-jsonviewer--docs
-    about: Review the API, accessibility guidance, and interactive stories.

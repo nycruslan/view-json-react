@@ -2,7 +2,6 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
-  readdirSync,
   renameSync,
   rmSync,
   symlinkSync,
@@ -14,19 +13,6 @@ import process from 'node:process';
 
 const root = path.resolve(import.meta.dirname, '..');
 const temporaryDirectory = mkdtempSync(path.join(root, '.package-test-'));
-
-const collectRelativeFiles = (directory, prefix = '') => readdirSync(
-  directory,
-  { withFileTypes: true },
-).flatMap(entry => {
-  const relativePath = path.posix.join(prefix, entry.name);
-  return entry.isDirectory()
-    ? collectRelativeFiles(path.join(directory, entry.name), relativePath)
-    : [relativePath];
-});
-const publicBuildLeaks = new Set(
-  collectRelativeFiles(path.join(root, 'public')).map(file => `dist/${file}`),
-);
 
 const run = (command, args, options = {}) => {
   const result = spawnSync(command, args, {
@@ -97,10 +83,7 @@ try {
     }
   }
   for (const packedPath of packedPaths) {
-    if (
-      /^(?:src|scripts|public|docs|coverage|storybook-static)\//u.test(packedPath)
-      || publicBuildLeaks.has(packedPath)
-    ) {
+    if (/^(?:src|scripts|docs|coverage|storybook-static)\//u.test(packedPath)) {
       throw new Error(`The package contains repository-only file ${packedPath}`);
     }
   }

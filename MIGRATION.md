@@ -159,7 +159,7 @@ v3 does not impose a search toolbar. Connect `searchQuery` to your own UI:
 
 ### Recommended migration sequence
 
-1. Install a v3 prerelease and import `view-json-react/styles.css`.
+1. Install v3 and import `view-json-react/styles.css`.
 2. Remove v2 CSS selector overrides and migrate variables to `--vjr-*`.
 3. Update `onCopy` types and assertions.
 4. Update tests to query `tree` and `treeitem` roles.

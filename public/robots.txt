@@ -1,4 +1,0 @@
-User-agent: *
-Allow: /
-
-Sitemap: https://nycruslan.github.io/view-json-react/sitemap.xml
